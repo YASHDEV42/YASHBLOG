@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+}
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  avatarUrl String?  // Optional profile picture
+  bio       String?  // Optional bio
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]       // Posts authored by this user
+  comments  Comment[]    // Comments written by this user
+  likedPosts Post[] @relation("LikedPosts") // Posts liked by this user
+}
+
+model Post {
+  id           Int      @id @default(autoincrement())
+  title        String
+  content      String   // Main content of the post
+  excerpt      String?  // Optional short description
+  slug         String   @unique // SEO-friendly URL
+  published    Boolean  @default(false) // Draft or published status
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  authorId     Int
+  author       User      @relation(fields: [authorId], references: [id]) // Relationship to the user who authored the post
+  categories   Category[]  // Many-to-many relationship
+  tags         Tag[]     // Many-to-many relationship
+  comments     Comment[]  // Comments on this post
+  likedByUsers User[] @relation("LikedPosts") // Users who liked this post
+  metadata     PostMetadata?  // One-to-one relation to PostMetadata
+  metadataId   Int?          // Foreign key for PostMetadata
+}
+
+model PostMetadata {
+  id        Int      @id @default(autoincrement())
+  views     Int      @default(0)
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+  postId    Int      @unique
+  post      Post     @relation(fields: [postId], references: [id])
+}
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id]) // Relationship to the user who made the comment
+
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id]) // Relationship to the post this comment belongs to
+}
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  posts     Post[]   // Many-to-many relationship
+}
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  posts     Post[]    // Many-to-many relationship
+}
