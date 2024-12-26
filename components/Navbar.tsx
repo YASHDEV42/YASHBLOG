@@ -6,6 +6,7 @@ import { toggleTheme } from "@/redux/slices/themeSlice";
 import { useEffect, useState } from "react";
 import { RootState } from "@/redux/store";
 import { Moon, Sun } from "lucide-react";
+import Spinner from "./Spinner";
 
 export function Navbar() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -14,7 +15,7 @@ export function Navbar() {
   useEffect(() => {
     setIsLoaded(true);
   }, []);
-  if (!isLoaded) return <div>Loading...</div>;
+  if (!isLoaded) return <Spinner />;
   return (
     <nav className="bg-background border-b absolute top-0 w-full z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,7 +38,7 @@ export function Navbar() {
             </Link>
             <Button
               variant={isDark ? "ghost" : "outline"}
-              className="ml-2"
+              className="ml-2 w-12"
               onClick={() => dispatch(toggleTheme())}
             >
               {isDark ? <Sun size={36} /> : <Moon size={36} />}

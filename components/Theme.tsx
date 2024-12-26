@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Geist, Geist_Mono } from "next/font/google";
 import { RootState } from "@/redux/store";
+import Spinner from "./Spinner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +25,7 @@ const Theme = ({
   }, []);
   const isDark = useSelector((state: RootState) => state.theme.isDark);
   const theme = isDark ? "dark" : "light";
-  if (!isLoaded) return <div>Loading...</div>;
+  if (!isLoaded) return <Spinner />;
   return (
     <body
       className={`${geistSans.variable} ${geistMono.variable} antialiased ${theme}`}

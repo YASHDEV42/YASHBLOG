@@ -70,3 +70,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+body {
+  padding-right: 0 !important;
+  overflow: auto !important;
+}

@@ -1,5 +1,7 @@
+"use client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import Register from "@/actions/User";
 import {
   Card,
   CardContent,
@@ -10,15 +12,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-// import { useFormState } from "react-dom";
-// const initialState = {
-//   message: null,
-// };
+import { useFormState } from "react-dom";
+const initialState = {
+  message: null,
+};
 export function SignupForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  // const [state, formAction] = useFormState(Register as any, initialState);
+  const [state, formAction] = useFormState(Register, initialState);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -30,7 +32,7 @@ export function SignupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form action={formAction}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <Button variant="outline" className="w-full">
@@ -63,7 +65,8 @@ export function SignupForm({
                   <Input
                     id="name"
                     type="text"
-                    placeholder="John Doe"
+                    name="name"
+                    placeholder="Yahya Shannat"
                     required
                   />
                 </div>
@@ -72,18 +75,34 @@ export function SignupForm({
                   <Input
                     id="email"
                     type="email"
+                    name="email"
                     placeholder="m@example.com"
                     required
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" required />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input id="confirm-password" type="password" required />
+                  <Input
+                    id="confirm-password"
+                    name="confirmPassword"
+                    type="password"
+                    required
+                  />
                 </div>
+                {state.message && (
+                  <div className="text-red-500 font-bold text-3xl text-sm">
+                    {state.message}
+                  </div>
+                )}
                 <Button type="submit" className="w-full">
                   Sign Up
                 </Button>

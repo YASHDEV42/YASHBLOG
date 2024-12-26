@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { store } from "@/redux/store";
+import Spinner from "./Spinner";
 const ProviderComponent = ({
   children,
 }: Readonly<{
@@ -11,7 +12,7 @@ const ProviderComponent = ({
   useEffect(() => {
     setIsLoaded(true);
   }, []);
-  if (!isLoaded) return <div>Loading...</div>;
+  if (!isLoaded) return <Spinner />;
   return <Provider store={store}>{children}</Provider>;
 };
 
