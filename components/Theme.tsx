@@ -25,12 +25,12 @@ const Theme = ({
   }, []);
   const isDark = useSelector((state: RootState) => state.theme.isDark);
   const theme = isDark ? "dark" : "light";
-  if (!isLoaded) return <Spinner />;
+
   return (
     <body
       className={`${geistSans.variable} ${geistMono.variable} antialiased ${theme}`}
     >
-      {children}
+      {isLoaded ? children : <Spinner />}
     </body>
   );
 };

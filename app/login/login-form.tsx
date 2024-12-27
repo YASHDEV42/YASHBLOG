@@ -1,3 +1,4 @@
+"use client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,10 +11,44 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { login } from "@/actions/User";
+// import { supabase } from "@/lib/supabase";
+// import { useState } from "react";
+// import { redirect } from "next/navigation";
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  // const [message, setMessage] = useState<string | null>(null);
+  // const [loading, setLoading] = useState<boolean>(false);
+
+  // const logInHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   const email = e.currentTarget.email.value;
+  //   const password = e.currentTarget.password.value;
+  //   if (!email || !password) {
+  //     setMessage("Please fill in all the fields.");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   let { data, error } = await supabase.auth.signInWithPassword({
+  //     email,
+  //     password,
+  //   });
+
+  //   if (error) {
+  //     setMessage(error.message);
+  //     setLoading(false);
+  //     return;
+  //   }
+  //   console.log("data from supabase: ", data);
+  //   setMessage("Logged in successfully");
+  //   setLoading(false);
+  //   redirect("/");
+  // };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -24,7 +59,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form action={login}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <Button variant="outline" className="w-full">
@@ -73,7 +108,10 @@ export function LoginForm({
                   </div>
                   <Input id="password" type="password" required />
                 </div>
-                <Button type="submit" className="w-full">
+                {/* {message && (
+                  <div className="text-red-500 text-sm">{message}</div>
+                )} */}
+                <Button className={`w-full `} type="submit">
                   Login
                 </Button>
               </div>

@@ -1,7 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import Register from "@/actions/User";
 import {
   Card,
   CardContent,
@@ -12,16 +11,62 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useFormState } from "react-dom";
-const initialState = {
-  message: null,
-};
+// import { useState } from "react";
+import { signup } from "@/actions/User";
+
 export function SignupForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [state, formAction] = useFormState(Register, initialState);
+  // const [message, setMessage] = useState<string | null>(null);
+  // const [successful, setSuccessful] = useState<boolean>(false);
+  // const [loading, setLoading] = useState<boolean>(false);
 
+  // const signUpHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   const email = e.currentTarget.email.value;
+  //   const password = e.currentTarget.password.value;
+  //   const confirmPassword = e.currentTarget.confirmPassword.value;
+  //   const name = (document.getElementById("name") as HTMLInputElement).value;
+
+  //   console.log(email, password, confirmPassword, name);
+
+  //   if (!email || !password || !confirmPassword || !name) {
+  //     setMessage("Please fill in all the fields.");
+  //     setLoading(false);
+  //     return;
+  //   }
+  //   if (password.length < 6) {
+  //     setMessage("Password must be at least 6 characters.");
+  //     setLoading(false);
+  //     return;
+  //   }
+  //   if (password !== confirmPassword) {
+  //     setMessage("Passwords do not match.");
+  //     setLoading(false);
+
+  //     return;
+  //   }
+  //   const { data, error } = await supabase.auth.signUp({
+  //     email,
+  //     password,
+  //     options: {
+  //       data: { name }, // Storing additional metadata
+  //     },
+  //   });
+
+  //   if (error) {
+  //     setMessage(error.message);
+  //     setLoading(false);
+  //   } else if (data.user) {
+  //     setSuccessful(true);
+  //     setMessage(
+  //       "Sign-up successful! Please check your email to confirm your account."
+  //     );
+  //     setLoading(false);
+  //   }
+  // };
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -32,7 +77,7 @@ export function SignupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction}>
+          <form action={signup}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <Button variant="outline" className="w-full">
@@ -98,13 +143,15 @@ export function SignupForm({
                     required
                   />
                 </div>
-                {state.message && (
-                  <div className="text-red-500 font-bold text-3xl text-sm">
-                    {state.message}
-                  </div>
-                )}
-                <Button type="submit" className="w-full">
-                  Sign Up
+                {/* {message &&
+                  (successful ? (
+                    <div className="text-green-500 font-bold">{message}</div>
+                  ) : (
+                    <div className="text-red-500 font-bold">{message}</div>
+                  ))}
+                <SignupBtn /> */}
+                <Button className={`w-full `} type="submit">
+                  Sign up
                 </Button>
               </div>
               <div className="text-center text-sm">

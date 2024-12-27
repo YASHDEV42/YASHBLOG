@@ -1,6 +1,5 @@
 import { ArrowDown } from "lucide-react";
-
-export default function Home() {
+const Home = async () => {
   return (
     <div className="h-screen flex items-center justify-center container relative font-semiblod tracking-wider">
       <h1 className=" text-6xl">WELLCOME IN YASHBLOG</h1>
@@ -9,4 +8,5 @@ export default function Home() {
       </span>
     </div>
   );
-}
+};
+export default Home;

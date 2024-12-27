@@ -7,14 +7,27 @@ import { useEffect, useState } from "react";
 import { RootState } from "@/redux/store";
 import { Moon, Sun } from "lucide-react";
 import Spinner from "./Spinner";
-
+import { createClient } from "@/lib/supabase";
+import { redirect } from "next/navigation";
+import { AuthError, User } from "@supabase/supabase-js";
 export function Navbar() {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
   const isDark = useSelector((state: RootState) => state.theme.isDark);
   const dispatch = useDispatch();
   useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      console.log("user: ", user);
+      setUser(user);
+    };
+    fetchUser();
     setIsLoaded(true);
   }, []);
+
   if (!isLoaded) return <Spinner />;
   return (
     <nav className="bg-background border-b absolute top-0 w-full z-10">
@@ -28,14 +41,41 @@ export function Navbar() {
             </Link>
           </div>
           <div className="flex items-center">
-            <Link href="/login" passHref>
-              <Button variant="ghost" className="mr-2">
-                Log in
-              </Button>
-            </Link>
-            <Link href="/signup" passHref>
-              <Button>Sign up</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link href="/profile" passHref>
+                  <Button variant="ghost" className="mr-2">
+                    profile
+                  </Button>
+                </Link>
+                <Button
+                  onClick={async () => {
+                    const supabase = createClient();
+                    const { error }: { error: AuthError | null } =
+                      await supabase.auth.signOut();
+                    if (error) {
+                      console.log("Error logging out:", error.message);
+                      return;
+                    }
+                    setUser(null);
+                    redirect("/");
+                  }}
+                >
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" passHref>
+                  <Button variant="ghost" className="mr-2">
+                    Log in
+                  </Button>
+                </Link>
+                <Link href="/signup" passHref>
+                  <Button>Sign up</Button>
+                </Link>
+              </>
+            )}
             <Button
               variant={isDark ? "ghost" : "outline"}
               className="ml-2 w-12"
