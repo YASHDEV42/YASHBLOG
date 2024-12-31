@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ReactNode, MouseEventHandler } from "react";
 import Document from "@tiptap/extension-document";
 import Heading from "@tiptap/extension-heading";
 import Paragraph from "@tiptap/extension-paragraph";
@@ -18,6 +19,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   BoldIcon,
   ItalicIcon,
@@ -31,8 +33,19 @@ import {
   Strikethrough,
   Minus,
 } from "lucide-react";
+interface ToolbarButtonProps {
+  onClick: MouseEventHandler<HTMLButtonElement>;
+  isActive: boolean;
+  icon: ReactNode;
+  label: string;
+}
 
-const ToolbarButton = ({ onClick, isActive, icon, label }) => (
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({
+  onClick,
+  isActive,
+  icon,
+  label,
+}) => (
   <Button
     variant="ghost"
     size="icon"
