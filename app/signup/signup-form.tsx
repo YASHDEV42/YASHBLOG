@@ -11,42 +11,24 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-
 import { signup } from "@/actions/User";
 import { useActionState } from "react";
-
-const initialState: InitialState = {
-  message: null,
-  successful: false,
-};
-
-type SignupData = {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  name: string;
-};
-
-type ResponseType = {
-  success: boolean;
-  message: string;
-};
 
 type InitialState = {
   message: string | null;
   successful: boolean;
 };
 
-type SignupFunction = (data: SignupData) => Promise<ResponseType>;
+const initialState: InitialState = {
+  message: null,
+  successful: false,
+};
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [state, formAction, isPending] = useActionState<
-    SignupFunction,
-    InitialState
-  >(signup, initialState);
+  const [state, formAction, isPending] = useActionState(signup, initialState);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -124,17 +106,16 @@ export function SignupForm({
                     required
                   />
                 </div>
-                {state.message &&
-                  (state.successful ? (
-                    <p className="text-green-500 font-bold">{state.message}</p>
-                  ) : (
-                    <p className="text-red-500 font-bold">{state.message}</p>
-                  ))}
-                <Button
-                  className={`w-full `}
-                  disabled={isPending}
-                  type="submit"
-                >
+                {state.message && (
+                  <p
+                    className={`font-bold ${
+                      state.successful ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    {state.message}
+                  </p>
+                )}
+                <Button className="w-full" disabled={isPending} type="submit">
                   {isPending ? "Signing Up..." : "Sign up"}
                 </Button>
               </div>

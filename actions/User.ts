@@ -19,8 +19,13 @@ interface SignupData {
 
 interface SignupResponse {
   message: string;
-  successful?: boolean;
+  successful: boolean;
 }
+
+type InitialState = {
+  message: string | null;
+  successful: boolean;
+};
 
 export async function login(formData: FormData): Promise<void> {
   const supabase = await createClient();
@@ -40,7 +45,7 @@ export async function login(formData: FormData): Promise<void> {
 }
 
 export const signup = async (
-  prevState: FormData,
+  prevState: InitialState,
   formState: FormData
 ): Promise<SignupResponse> => {
   const supabase = await createClient();
@@ -56,11 +61,11 @@ export const signup = async (
     password === "" ||
     confirmPassword === ""
   ) {
-    return { message: "Please fill in all fields" };
+    return { message: "Please fill in all fields", successful: false };
   }
 
   if (password !== confirmPassword) {
-    return { message: "Passwords do not match" };
+    return { message: "Passwords do not match", successful: false };
   }
 
   const { data, error } = await supabase.auth.signUp(userData);
