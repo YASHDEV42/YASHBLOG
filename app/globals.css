@@ -74,3 +74,68 @@ body {
   padding-right: 0 !important;
   overflow: auto !important;
 }
+.editor:focus,
+.editor:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove focus styles for child elements as well */
+.editor [contenteditable]:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  align-items: left;
+}
+.editor h1 {
+  font-size: 2em;
+}
+.editor h2 {
+  font-size: 1.5em;
+}
+.editor h3 {
+  font-size: 1.17em;
+}
+.editor h4 {
+  font-size: 1em;
+}
+.editor p {
+  font-size: 1em;
+}
+/* Style for Blockquote */
+.editor blockquote {
+  border-left: 4px solid #ccc;
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  color: #555;
+  font-style: italic;
+}
+
+/* Style for Unordered List */
+.editor ul {
+  list-style-type: disc;
+  margin-left: 1.5em;
+  padding-left: 0.5em;
+}
+
+/* Style for Ordered List */
+.editor ol {
+  list-style-type: decimal;
+  margin-left: 1.5em;
+  padding-left: 0.5em;
+}
+
+/* Style for List Items */
+.editor li {
+  margin-bottom: 0.5em;
+}
+.editor hr {
+  @apply border-t-2 border-accent-foreground my-4;
+}

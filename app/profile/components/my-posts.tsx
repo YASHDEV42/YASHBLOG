@@ -1,4 +1,7 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 export default function MyPosts() {
   const posts = [
@@ -21,16 +24,31 @@ export default function MyPosts() {
 
   return (
     <div className="space-y-4">
-      {posts.map((post) => (
-        <Card key={post.id}>
-          <CardHeader>
-            <CardTitle>{post.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{post.excerpt}</p>
-          </CardContent>
-        </Card>
-      ))}
+      {!posts ? (
+        <h2 className="text-center font-bold lg:text-3xl md:text-2xl text-xl mt-8">
+          You have no posts yet 😔
+        </h2>
+      ) : (
+        posts.map((post) => (
+          <Card key={post.id}>
+            <CardHeader>
+              <CardTitle>{post.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>{post.excerpt}</p>
+            </CardContent>
+          </Card>
+        ))
+      )}
+      <Button>
+        <Link
+          href="/profile/create-post"
+          className="flex items-center justify-center gap-1 "
+        >
+          <Plus />
+          <span className="text-md">Create Post</span>
+        </Link>
+      </Button>
     </div>
   );
 }
