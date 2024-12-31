@@ -1,14 +1,8 @@
 "use server";
-
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/server-supabase";
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/server-supabase";
-
-interface LoginData {
-  email: string;
-  password: string;
-}
 type LoginInitialState = {
   message: string | null;
 };
@@ -34,22 +28,25 @@ type InitialState = {
 
 export async function login(
   prevState: LoginInitialState,
-  formData: FormData
+  formState: FormData
 ): Promise<LoginResponse> {
   const supabase = await createClient();
-  const data: LoginData = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
-
-  const { error } = await supabase.auth.signInWithPassword(data);
-
-  if (error) {
-    redirect("/error");
+  const email = formState.get("email") as string;
+  const password = formState.get("password") as string;
+  console.log(email, password);
+  if (email === "" || password === "") {
+    return { message: "Please fill in all fields" };
   }
-
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (error) {
+    return { message: error.message };
+  }
   revalidatePath("/", "layout");
   redirect("/");
+  return { message: "Logged in" };
 }
 
 export const signup = async (

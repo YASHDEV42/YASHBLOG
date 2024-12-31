@@ -68,6 +68,7 @@ export function LoginForm({
                   <Input
                     id="email"
                     type="email"
+                    name="email"
                     placeholder="m@example.com"
                     required
                   />
@@ -82,10 +83,15 @@ export function LoginForm({
                       Forgot your password?
                     </a>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input
+                    id="password"
+                    type="password"
+                    name="password"
+                    required
+                  />
                 </div>
-                {state.message && (
-                  <p className="text-red-700 text-lg md:text-xl lg:text-2xl font-bold">
+                {state?.message && (
+                  <p className="text-red-700 text-md md:text-lg lg:text-xl">
                     {state.message}
                   </p>
                 )}
