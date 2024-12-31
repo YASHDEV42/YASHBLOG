@@ -9,7 +9,9 @@ interface LoginData {
   email: string;
   password: string;
 }
-
+type LoginInitialState = {
+  message: string | null;
+};
 interface SignupData {
   name: string;
   email: string;
@@ -21,13 +23,19 @@ interface SignupResponse {
   message: string;
   successful: boolean;
 }
+interface LoginResponse {
+  message: string;
+}
 
 type InitialState = {
   message: string | null;
   successful: boolean;
 };
 
-export async function login(formData: FormData): Promise<void> {
+export async function login(
+  prevState: LoginInitialState,
+  formData: FormData
+): Promise<LoginResponse> {
   const supabase = await createClient();
   const data: LoginData = {
     email: formData.get("email") as string,

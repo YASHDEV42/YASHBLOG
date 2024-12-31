@@ -14,14 +14,17 @@ import Link from "next/link";
 import { login } from "@/actions/User";
 import { useActionState } from "react";
 
-const initialState = {
+type LoginInitialState = {
+  message: string | null;
+};
+const initialState: LoginInitialState = {
   message: null,
 };
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [state, formAction] = useActionState(login as any, initialState);
+  const [state, formAction] = useActionState(login, initialState);
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
