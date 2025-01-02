@@ -6,7 +6,6 @@ import TiptapEditor from "./TiptapEditor";
 import TitleExcerptForm from "./TitleExcerptForm";
 import PostPreview from "./PostPreview";
 import { createPost } from "@/actions/Posts";
-import { User } from "@supabase/supabase-js";
 
 type PostData = {
   title: string;
@@ -14,7 +13,7 @@ type PostData = {
   content: string;
 };
 
-const BlogPostEditor = ({ user }: { user: User }) => {
+const BlogPostEditor = ({ id }: { id: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState(1);
   const [postData, setPostData] = useState<PostData>({
@@ -35,7 +34,7 @@ const BlogPostEditor = ({ user }: { user: User }) => {
 
   const handleConfirm = async () => {
     setLoading(true);
-    await createPost(postData, user);
+    await createPost(postData, id);
     setLoading(false);
     setPostData({ title: "", excerpt: "", content: "" });
     setStep(1);

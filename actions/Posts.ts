@@ -1,5 +1,5 @@
 "use server";
-import { PrismaClient, public_users } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 type PostData = {
@@ -34,10 +34,7 @@ export async function generateUniqueSlug(title: string): Promise<string> {
   return uniqueSlug;
 }
 
-const createPost = async (
-  postData: PostData,
-  user: public_users
-): Promise<void> => {
+const createPost = async (postData: PostData, id: string): Promise<void> => {
   console.log("Post data from the server action", postData);
   const title = postData.title;
   const content = postData.content;
@@ -51,7 +48,7 @@ const createPost = async (
         excerpt,
         slug,
         published: true,
-        authorId: user.id,
+        authorId: id,
       },
     });
   } catch (error) {
