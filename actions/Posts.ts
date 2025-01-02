@@ -1,6 +1,5 @@
 "use server";
-import { PrismaClient } from "@prisma/client";
-import { User } from "@supabase/supabase-js";
+import { PrismaClient, public_users } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 type PostData = {
@@ -35,7 +34,10 @@ export async function generateUniqueSlug(title: string): Promise<string> {
   return uniqueSlug;
 }
 
-const createPost = async (postData: PostData, user: User): Promise<void> => {
+const createPost = async (
+  postData: PostData,
+  user: public_users
+): Promise<void> => {
   console.log("Post data from the server action", postData);
   const title = postData.title;
   const content = postData.content;
