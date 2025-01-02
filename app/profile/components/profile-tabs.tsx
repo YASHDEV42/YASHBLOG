@@ -5,9 +5,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MyPosts from "./my-posts";
 import LikedPosts from "./liked-posts";
 import Settings from "./settings";
+import {
+  LikedPosts as LikedPostsType,
+  Post,
+  public_users,
+} from "@prisma/client";
 import { User } from "@supabase/supabase-js";
-
-export default function ProfileTabs({ user }: { user: User }) {
+type PostWithAuthor = Post & {
+  author: public_users | null;
+};
+type LikedPostsTypeWithPost = LikedPostsType & {
+  Post: PostWithAuthor | null;
+};
+export default function ProfileTabs({
+  user,
+  posts,
+  likedPosts,
+}: {
+  user: User;
+  posts: Post[];
+  likedPosts: LikedPostsTypeWithPost[];
+}) {
   const [activeTab, setActiveTab] = useState("my-posts");
 
   return (
@@ -18,10 +36,10 @@ export default function ProfileTabs({ user }: { user: User }) {
         <TabsTrigger value="settings">Settings</TabsTrigger>
       </TabsList>
       <TabsContent value="my-posts">
-        <MyPosts />
+        <MyPosts posts={posts} />
       </TabsContent>
       <TabsContent value="liked-posts">
-        <LikedPosts />
+        <LikedPosts likedPosts={likedPosts} />
       </TabsContent>
       <TabsContent value="settings">
         <Settings user={user && user} />

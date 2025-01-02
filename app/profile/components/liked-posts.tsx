@@ -1,41 +1,52 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  LikedPosts as LikedPostsType,
+  Post,
+  public_users,
+} from "@prisma/client";
 
-export default function LikedPosts() {
-  const likedPosts = [
-    {
-      id: 1,
-      title: "The Future of AI",
-      author: "Jane Smith",
-      excerpt: "Exploring the potential impact of artificial intelligence...",
-    },
-    {
-      id: 2,
-      title: "Mastering CSS Grid",
-      author: "Alex Johnson",
-      excerpt: "A comprehensive guide to using CSS Grid for modern layouts...",
-    },
-    {
-      id: 3,
-      title: "JavaScript Best Practices",
-      author: "Emily Brown",
-      excerpt:
-        "Learn the best practices for writing clean and efficient JavaScript...",
-    },
-  ];
+type PostWithAuthor = Post & {
+  author: public_users | null;
+};
 
+type LikedPostsTypeWithPost = LikedPostsType & {
+  Post: PostWithAuthor | null;
+};
+
+export default function LikedPosts({
+  likedPosts,
+}: {
+  likedPosts: LikedPostsTypeWithPost[];
+}) {
   return (
     <div className="space-y-4">
-      {likedPosts.map((post) => (
-        <Card key={post.id}>
-          <CardHeader>
-            <CardTitle>{post.title}</CardTitle>
-            <p className="text-sm text-muted-foreground">By {post.author}</p>
-          </CardHeader>
-          <CardContent>
-            <p>{post.excerpt}</p>
-          </CardContent>
-        </Card>
-      ))}
+      {likedPosts && likedPosts.length === 0 ? (
+        <p className="text-center text-muted-foreground">
+          No liked posts found.
+        </p>
+      ) : (
+        likedPosts.map((likedPost) => (
+          <Card key={likedPost.id}>
+            {likedPost.Post ? (
+              <>
+                <CardHeader>
+                  <CardTitle>{likedPost.Post.title}</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    By {likedPost.Post.author?.name || "Unknown"}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <p>{likedPost.Post.excerpt || "No excerpt available."}</p>
+                </CardContent>
+              </>
+            ) : (
+              <CardContent>
+                <p>Post information is unavailable.</p>
+              </CardContent>
+            )}
+          </Card>
+        ))
+      )}
     </div>
   );
 }

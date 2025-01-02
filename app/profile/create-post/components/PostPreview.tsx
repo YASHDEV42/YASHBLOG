@@ -8,12 +8,14 @@ interface PostPreviewProps {
   };
   onConfirm: () => void;
   onEdit: () => void;
+  isLoading: boolean;
 }
 
 const PostPreview: React.FC<PostPreviewProps> = ({
   postData,
   onConfirm,
   onEdit,
+  isLoading,
 }) => {
   return (
     <div className="space-y-4">
@@ -23,9 +25,17 @@ const PostPreview: React.FC<PostPreviewProps> = ({
         className="editor max-w-none"
         dangerouslySetInnerHTML={{ __html: postData.content }}
       />
-      <div className="flex justify-between">
-        <Button onClick={onEdit}>Edit Post</Button>
-        <Button onClick={onConfirm}>Confirm and Publish</Button>
+      <div className="flex justify-start gap-2">
+        <Button
+          onClick={onConfirm}
+          disabled={isLoading}
+          className={`${isLoading ? "cursor-not-allowed opacity-70" : ""}`}
+        >
+          {isLoading ? "Loading..." : "Confirm and Publish"}
+        </Button>
+        <Button onClick={onEdit} variant="secondary">
+          Edit Post
+        </Button>
       </div>
     </div>
   );

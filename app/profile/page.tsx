@@ -4,14 +4,7 @@ import ProfileTabs from "./components/profile-tabs";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/server-supabase";
 import { User } from "@supabase/supabase-js";
-// interface Post {
-//   id: string;
-//   authorId: string;
-//   title?: string;
-//   content?: string;
-//   createdAt?: string;
-// }
-
+import prisma from "@/lib/db";
 export const metadata: Metadata = {
   title: "User Profile",
   description: "View and manage your profile, posts, and settings",
@@ -24,20 +17,34 @@ export default async function ProfilePage() {
   if (!data?.user) {
     redirect("/login");
   }
-  // const {
-  //   data,
-  //   error,
-  // }: { data: Post[] | null; error: PostgrestError | null } = await supabase
-  //   .from<Post>("Post")
-  //   .select("authorId, title, content")
-  //   .eq("authorId", data.user.id);
-  // console.log(data);
-  // console.log(error);
+  const posts = await prisma.post.findMany({
+    where: {
+      authorId: data?.user.id,
+    },
+  });
+  console.log("Posts from the server", posts);
+
+  const likedPosts = await prisma.likedPosts.findMany({
+    where: {
+      userId: data?.user.id,
+    },
+    include: {
+      Post: {
+        include: {
+          author: true,
+        },
+      },
+    },
+  });
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-[80vw] mx-auto px-4 py-8">
       <ProfileHeader user={data && (data?.user as User)} />
-      <ProfileTabs user={data && (data?.user as User)} />
+      <ProfileTabs
+        user={data && (data?.user as User)}
+        posts={posts}
+        likedPosts={likedPosts}
+      />
     </div>
   );
 }

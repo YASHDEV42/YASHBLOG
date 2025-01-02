@@ -6,12 +6,6 @@ import { redirect } from "next/navigation";
 type LoginInitialState = {
   message: string | null;
 };
-interface SignupData {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
 
 interface SignupResponse {
   message: string;
@@ -58,7 +52,6 @@ export const signup = async (
   const email = formState.get("email") as string;
   const password = formState.get("password") as string;
   const confirmPassword = formState.get("confirmPassword") as string;
-  const userData: SignupData = { name, email, password, confirmPassword };
 
   if (
     name === "" ||
@@ -73,7 +66,11 @@ export const signup = async (
     return { message: "Passwords do not match", successful: false };
   }
 
-  const { data, error } = await supabase.auth.signUp(userData);
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { name } },
+  });
   console.log("data: ", data);
   console.log("error: ", error);
   revalidatePath("/", "layout");

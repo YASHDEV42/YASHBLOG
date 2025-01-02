@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TiptapEditor from "./TiptapEditor";
 import TitleExcerptForm from "./TitleExcerptForm";
 import PostPreview from "./PostPreview";
+import { createPost } from "@/actions/Posts";
+import { User } from "@supabase/supabase-js";
 
 type PostData = {
   title: string;
@@ -12,7 +14,8 @@ type PostData = {
   content: string;
 };
 
-const BlogPostEditor = () => {
+const BlogPostEditor = ({ user }: { user: User }) => {
+  const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState(1);
   const [postData, setPostData] = useState<PostData>({
     title: "",
@@ -30,10 +33,10 @@ const BlogPostEditor = () => {
     setStep(3);
   };
 
-  const handleConfirm = () => {
-    // Here you would typically send the post data to your backend
-    console.log("Post confirmed:", postData);
-    // Reset the form after confirmation
+  const handleConfirm = async () => {
+    setLoading(true);
+    await createPost(postData, user);
+    setLoading(false);
     setPostData({ title: "", excerpt: "", content: "" });
     setStep(1);
   };
@@ -59,6 +62,7 @@ const BlogPostEditor = () => {
             postData={postData}
             onConfirm={handleConfirm}
             onEdit={() => setStep(1)}
+            isLoading={loading}
           />
         )}
       </CardContent>
