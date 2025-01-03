@@ -6,7 +6,7 @@ interface ThemeState {
 }
 
 const initialState: ThemeState = {
-  isDark: true,
+  isDark: false,
   name: "default",
 };
 

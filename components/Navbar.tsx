@@ -45,6 +45,16 @@ export function Navbar() {
             variant="ghost"
             className={mobile ? "w-full justify-start" : ""}
             onClick={() => {
+              router.push("/explorer");
+              if (mobile) setIsOpen(false);
+            }}
+          >
+            Explorer
+          </Button>
+          <Button
+            variant="ghost"
+            className={mobile ? "w-full justify-start" : ""}
+            onClick={() => {
               router.push("/profile");
               if (mobile) setIsOpen(false);
             }}

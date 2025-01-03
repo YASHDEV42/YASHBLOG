@@ -42,7 +42,7 @@ const createPost = async (postData: PostData, id: string): Promise<void> => {
   const slug = await generateUniqueSlug(title);
   console.log("this is the id from the server action", id);
   console.log("this is the type of id from the server action", typeof id);
-
+  const authorId = id;
   try {
     await prisma.post.create({
       data: {
@@ -51,7 +51,7 @@ const createPost = async (postData: PostData, id: string): Promise<void> => {
         excerpt,
         slug,
         published: true,
-        authorId: id,
+        authorId,
       },
     });
   } catch (error) {
@@ -81,5 +81,14 @@ export async function togglePublishStatus(id: number) {
   }
   revalidatePath("/profile");
 }
-
+export async function likePost(id: number) {
+  await prisma.post.update({
+    where: { id },
+    data: {
+      metadata: {
+        increment: { likes: 1 },
+      },
+    },
+  });
+}
 export { createPost };

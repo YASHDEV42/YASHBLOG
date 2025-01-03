@@ -12,7 +12,7 @@ const Home = async () => {
             A place to read, write, and deepen your understanding
           </p>
           <Button asChild className="px-6 py-2  text-lg">
-            <Link href="/start-reading">Start reading</Link>
+            <Link href="/explorer">Start reading</Link>
           </Button>
         </div>
       </div>
