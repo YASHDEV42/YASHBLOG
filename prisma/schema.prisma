@@ -19,7 +19,7 @@ model Post {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   metadataId     Int?
-  authorId       String?          @db.Uuid
+  authorId       String           @db.Uuid
   comments       Comment[]
   author         public_users?    @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   metadata       PostMetadata?
