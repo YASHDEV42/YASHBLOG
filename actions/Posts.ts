@@ -40,6 +40,9 @@ const createPost = async (postData: PostData, id: string): Promise<void> => {
   const content = postData.content;
   const excerpt = postData.excerpt;
   const slug = await generateUniqueSlug(title);
+  console.log("this is the id from the server action", id);
+  console.log("this is the type of id from the server action", typeof id);
+
   try {
     await prisma.post.create({
       data: {
