@@ -51,7 +51,7 @@ const createPost = async (postData: PostData): Promise<void> => {
         excerpt,
         slug,
         published: true,
-        authorId: id,
+        authorId: id as unknown as string,
       },
     });
   } catch (error) {
