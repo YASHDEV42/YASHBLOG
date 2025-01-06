@@ -1,10 +1,9 @@
 import prisma from "@/lib/db";
 import { Explorer } from "./components/explorer";
 import { PostMetadata, Prisma } from "@prisma/client";
-type PostWithAuthor = Prisma.PostGetPayload<{
+export type PostData = Prisma.PostGetPayload<{
   include: { author: true };
-}>;
-export type PostData = PostWithAuthor & {
+}> & {
   metadata: PostMetadata | null;
 };
 export default async function ExplorerPage() {

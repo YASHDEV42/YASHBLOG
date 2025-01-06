@@ -8,12 +8,12 @@ export default async function BlogPostPage({
 }: {
   params: { slug: string };
 }) {
-  const post: PostData = await prisma.post.findUnique({
+  const post: PostData | null = await prisma.post.findUnique({
     where: { slug: params.slug },
     include: { author: true, metadata: true },
   });
   const authorPosts = await prisma.post.findMany({
-    where: { authorId: post.authorId },
+    where: { authorId: post?.authorId },
     include: { author: true, metadata: true },
     orderBy: { createdAt: "desc" },
     take: 3,

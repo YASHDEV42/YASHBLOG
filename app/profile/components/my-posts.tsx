@@ -38,7 +38,7 @@ const App = ({ posts: initialPosts }: { posts: Post[] }) => {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
 
-  const handleTogglePublish = async (id: number) => {
+  const handleTogglePublish = async (id: string) => {
     setLoading(true);
     await togglePublishStatus(id);
     setPosts(
@@ -49,7 +49,7 @@ const App = ({ posts: initialPosts }: { posts: Post[] }) => {
     setLoading(false);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     setLoading(true);
     try {
       await deletePost(id);

@@ -5,14 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MyPosts from "./my-posts";
 import LikedPosts from "./liked-posts";
 import Settings from "./settings";
-import {
-  LikedPosts as LikedPostsType,
-  Post,
-  public_users,
-} from "@prisma/client";
+import { LikedPosts as LikedPostsType, Post } from "@prisma/client";
 import { User } from "@supabase/supabase-js";
 type PostWithAuthor = Post & {
-  author: public_users | null;
+  author: User | null;
 };
 type LikedPostsTypeWithPost = LikedPostsType & {
   Post: PostWithAuthor | null;
