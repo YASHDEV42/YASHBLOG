@@ -1,5 +1,8 @@
-import { Post, public_users } from "@prisma/client";
+import { LikedPosts, Post, User } from "@prisma/client";
 
 export type PostWithAuthor = Post & {
-  author: public_users;
+  author: User;
+};
+export type LikedPostsWithPostWithAuthor = LikedPosts & {
+  Post: PostWithAuthor;
 };

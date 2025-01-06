@@ -1,22 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  LikedPosts as LikedPostsType,
-  Post,
-  public_users,
-} from "@prisma/client";
-
-type PostWithAuthor = Post & {
-  author: public_users | null;
-};
-
-type LikedPostsTypeWithPost = LikedPostsType & {
-  Post: PostWithAuthor | null;
-};
+import { LikedPostsWithPostWithAuthor } from "@/types";
 
 export default function LikedPosts({
   likedPosts,
 }: {
-  likedPosts: LikedPostsTypeWithPost[];
+  likedPosts: LikedPostsWithPostWithAuthor[];
 }) {
   return (
     <div className="space-y-4">
@@ -26,7 +14,7 @@ export default function LikedPosts({
         </p>
       ) : (
         likedPosts.map((likedPost) => (
-          <Card key={likedPost.id}>
+          <Card key={likedPost.userId + likedPost.postId}>
             {likedPost.Post ? (
               <>
                 <CardHeader>

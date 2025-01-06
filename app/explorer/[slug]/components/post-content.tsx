@@ -57,7 +57,7 @@ export function PostContent({ post }: { post: PostData }) {
       <CardContent>
         <div className="flex items-center space-x-2 mb-4">
           <Avatar>
-            <AvatarImage alt={post.author?.name} />
+            <AvatarImage alt={post.author?.name || undefined} />
             <AvatarFallback>{post.author?.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
