@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 type PostData = {
+  id: string;
   title: string;
   excerpt: string;
   content: string;
@@ -34,14 +35,14 @@ export async function generateUniqueSlug(title: string): Promise<string> {
   return uniqueSlug;
 }
 
-const createPost = async (postData: PostData, id: string): Promise<void> => {
+const createPost = async (postData: PostData): Promise<void> => {
   console.log("Post data from the server action", postData);
   const title = postData.title;
   const content = postData.content;
   const excerpt = postData.excerpt;
+  const id = postData.id;
   const slug = await generateUniqueSlug(title);
-  console.log("this is the id from the server action", id);
-  console.log("this is the type of id from the server action", typeof id);
+
   try {
     await prisma.post.create({
       data: {
@@ -50,7 +51,7 @@ const createPost = async (postData: PostData, id: string): Promise<void> => {
         excerpt,
         slug,
         published: true,
-        authorId: id as string,
+        authorId: id,
       },
     });
   } catch (error) {

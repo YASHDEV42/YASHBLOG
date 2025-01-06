@@ -9,13 +9,12 @@ const page = async () => {
   if (!data?.user) {
     redirect("/login");
   }
-  console.log("User data from the server", data.user.id);
-  console.log("User data type from the server", typeof data.user.id);
+  const id: string = data.user.id;
 
   return (
     <div className="w-full flex flex-col items-center justify-center mx-auto">
       <h1>Create Post</h1>
-      <BlogPostEditor id={data.user.id} />
+      <BlogPostEditor id={id} />
     </div>
   );
 };

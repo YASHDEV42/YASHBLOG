@@ -34,7 +34,13 @@ const BlogPostEditor = ({ id }: { id: string }) => {
 
   const handleConfirm = async () => {
     setLoading(true);
-    await createPost(postData, id);
+    const data = {
+      id,
+      title: postData.title,
+      excerpt: postData.excerpt,
+      content: postData.content,
+    };
+    await createPost(data);
     setLoading(false);
     setPostData({ title: "", excerpt: "", content: "" });
     setStep(1);
