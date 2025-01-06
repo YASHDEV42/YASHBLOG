@@ -50,7 +50,7 @@ const createPost = async (postData: PostData, id: string): Promise<void> => {
         excerpt,
         slug,
         published: true,
-        authorId: id,
+        authorId: id as string,
       },
     });
   } catch (error) {
