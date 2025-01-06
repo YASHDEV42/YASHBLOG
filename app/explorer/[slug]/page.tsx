@@ -6,10 +6,12 @@ import { PostData } from "../page";
 export default async function BlogPostPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const slug = (await params).slug;
+
   const post: PostData | null = await prisma.post.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: { author: true, metadata: true },
   });
   const authorPosts = await prisma.post.findMany({
