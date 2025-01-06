@@ -60,14 +60,14 @@ const createPost = async (postData: PostData, id: string): Promise<void> => {
   }
   console.log("Post created successfully");
 };
-export async function deletePost(id: number) {
+export async function deletePost(id: string) {
   await prisma.post.delete({
     where: { id },
   });
   revalidatePath("/profile");
 }
 
-export async function togglePublishStatus(id: number) {
+export async function togglePublishStatus(id: string) {
   const post = await prisma.post.findUnique({
     where: { id },
     select: { published: true },
@@ -81,14 +81,9 @@ export async function togglePublishStatus(id: number) {
   }
   revalidatePath("/profile");
 }
-export async function likePost(id: number) {
-  await prisma.post.update({
-    where: { id },
-    data: {
-      metadata: {
-        increment: { likes: 1 },
-      },
-    },
-  });
-}
+// export async function likePost(postId: string, userId: number) {
+//   const existingLike = await prisma.postMetadata.findFirst({
+//     where: { postId, userId },
+//   });
+// }
 export { createPost };

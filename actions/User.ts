@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/server-supabase";
 import { redirect } from "next/navigation";
+import prisma from "@/lib/db";
 
 type LoginInitialState = {
   message: string | null;
@@ -53,12 +54,9 @@ export const signup = async (
   const password = formState.get("password") as string;
   const confirmPassword = formState.get("confirmPassword") as string;
 
-  if (
-    name === "" ||
-    email === "" ||
-    password === "" ||
-    confirmPassword === ""
-  ) {
+  console.log("Signup details:", { name, email });
+
+  if (!name || !email || !password || !confirmPassword) {
     return { message: "Please fill in all fields", successful: false };
   }
 
@@ -66,16 +64,51 @@ export const signup = async (
     return { message: "Passwords do not match", successful: false };
   }
 
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { message: "Invalid email format", successful: false };
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { name } },
+    options: {
+      data: { name },
+    },
   });
-  console.log("data: ", data);
-  console.log("error: ", error);
-  revalidatePath("/", "layout");
-  return {
-    message: "Please check your email to verify your account",
-    successful: true,
-  };
+
+  if (error) {
+    return { message: error.message, successful: false };
+  }
+
+  if (!data.user) {
+    return { message: "User not created in Supabase", successful: false };
+  }
+
+  console.log("Supabase response user:", data.user);
+
+  try {
+    console.log("Prisma user creation data:", {
+      email: data.user.email,
+      name: data.user.user_metadata?.name,
+    });
+
+    const user = await prisma.user.create({
+      data: {
+        id: data.user.id,
+        email: data.user.email || "default@gmail.com",
+        name: data.user.user_metadata?.name || "default user",
+      },
+    });
+
+    console.log("User created in Prisma:", user);
+
+    return {
+      message: "Please check your email to verify your account",
+      successful: true,
+    };
+  } catch (err) {
+    console.log("Error creating user in database:", err);
+
+    return { message: "Failed to create user in database", successful: false };
+  }
 };

@@ -29,7 +29,7 @@ export default async function ProfilePage() {
       userId: data?.user.id,
     },
     include: {
-      Post: {
+      post: {
         include: {
           author: true,
         },
