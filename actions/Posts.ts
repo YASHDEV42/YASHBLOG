@@ -1,6 +1,7 @@
 "use server";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 type PostData = {
   id: string;
@@ -35,7 +36,7 @@ export async function generateUniqueSlug(title: string): Promise<string> {
   return uniqueSlug;
 }
 
-const createPost = async (postData: PostData): Promise<void> => {
+export const createPost = async (postData: PostData): Promise<void> => {
   console.log("Post data from the server action", postData);
   const title = postData.title;
   const content = postData.content;
@@ -65,6 +66,7 @@ export async function deletePost(id: string) {
     where: { id },
   });
   revalidatePath("/profile");
+  redirect("/profile");
 }
 
 export async function togglePublishStatus(id: string) {
@@ -81,5 +83,83 @@ export async function togglePublishStatus(id: string) {
   }
   revalidatePath("/profile");
 }
+export async function likePost(postId: string, userId: string) {
+  await prisma.$transaction(async (prisma) => {
+    await prisma.likedPosts.create({
+      data: {
+        postId,
+        userId,
+      },
+    });
 
-export { createPost };
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: { metadata: true },
+    });
+
+    if (!post?.metadata) {
+      await prisma.postMetadata.create({
+        data: {
+          postId,
+          likes: 1,
+          views: 1,
+        },
+      });
+    } else {
+      await prisma.postMetadata.update({
+        where: { id: post.metadata.id },
+        data: {
+          likes: {
+            increment: 1,
+          },
+        },
+      });
+    }
+  });
+
+  revalidatePath("/profile");
+}
+export async function unlikePost(postId: string, userId: string) {
+  await prisma.$transaction(async (prisma) => {
+    await prisma.likedPosts.delete({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: { metadata: true },
+    });
+
+    if (post?.metadata) {
+      await prisma.postMetadata.update({
+        where: { id: post.metadata.id },
+        data: {
+          likes: {
+            decrement: 1,
+          },
+        },
+      });
+    }
+  });
+  revalidatePath("/profile");
+}
+export async function increaseWatch(postId: string) {
+  await prisma.postMetadata.upsert({
+    where: { postId },
+    update: {
+      views: {
+        increment: 1,
+      },
+    },
+    create: {
+      postId,
+      views: 1,
+      likes: 0,
+    },
+  });
+}

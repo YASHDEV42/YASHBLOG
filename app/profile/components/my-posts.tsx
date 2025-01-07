@@ -32,10 +32,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Post } from "@prisma/client";
-
-const App = ({ posts: initialPosts }: { posts: Post[] }) => {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+import { Post, PostMetadata } from "@prisma/client";
+export type PostWithMetadata = Post & {
+  metadata: PostMetadata;
+};
+const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
+  const [posts, setPosts] = useState<PostWithMetadata[]>(initialPosts);
   const [loading, setLoading] = useState(false);
 
   const handleTogglePublish = async (id: string) => {
@@ -90,7 +92,9 @@ const App = ({ posts: initialPosts }: { posts: Post[] }) => {
               </p>
               <div className="flex items-center mt-2 space-x-2">
                 <Heart className="w-4 h-4 text-red-500" />
-                <span className="text-md text-muted-foreground">0 likes</span>
+                <span className="text-md text-muted-foreground">
+                  {post.metadata.likes} likes
+                </span>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">

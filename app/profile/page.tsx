@@ -4,7 +4,8 @@ import ProfileTabs from "./components/profile-tabs";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/server-supabase";
 import prisma from "@/lib/db";
-import { PostWithAuthor, LikedPostsWithPostWithAuthor } from "@/types";
+import { LikedPostsWithPostWithAuthor } from "@/types";
+import { PostWithMetadata } from "./components/my-posts";
 
 export const metadata: Metadata = {
   title: "User Profile",
@@ -25,7 +26,11 @@ export default async function ProfilePage() {
     where: {
       authorId: user.id,
     },
-  })) as PostWithAuthor[];
+    include: {
+      author: true,
+      metadata: true,
+    },
+  })) as PostWithMetadata[];
 
   const likedPosts = (await prisma.likedPosts.findMany({
     where: {
@@ -39,6 +44,8 @@ export default async function ProfilePage() {
       },
     },
   })) as LikedPostsWithPostWithAuthor[] | [];
+
+  console.log(likedPosts);
 
   return (
     <div className="max-w-[80vw] mx-auto px-4 py-8">

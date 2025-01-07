@@ -4,5 +4,5 @@ export type PostWithAuthor = Post & {
   author: User;
 };
 export type LikedPostsWithPostWithAuthor = LikedPosts & {
-  Post: PostWithAuthor;
+  post: PostWithAuthor;
 };

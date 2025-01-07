@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MyPosts from "./my-posts";
+import MyPosts, { PostWithMetadata } from "./my-posts";
 import LikedPosts from "./liked-posts";
 import Settings from "./settings";
 import { User } from "@supabase/supabase-js";
-import { LikedPostsWithPostWithAuthor, PostWithAuthor } from "@/types";
+import { LikedPostsWithPostWithAuthor } from "@/types";
 
 export default function ProfileTabs({
   user,
@@ -14,7 +14,7 @@ export default function ProfileTabs({
   likedPosts,
 }: {
   user: User;
-  posts: PostWithAuthor[];
+  posts: PostWithMetadata[];
   likedPosts: LikedPostsWithPostWithAuthor[];
 }) {
   const [activeTab, setActiveTab] = useState("my-posts");
