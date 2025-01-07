@@ -1,4 +1,4 @@
-import prisma from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { Explorer } from "./components/explorer";
 import { PostMetadata, Prisma } from "@prisma/client";
 export type PostData = Prisma.PostGetPayload<{

@@ -3,7 +3,7 @@ import ProfileHeader from "./components/profile-header";
 import ProfileTabs from "./components/profile-tabs";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/server-supabase";
-import prisma from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { LikedPostsWithPostWithAuthor } from "@/types";
 import { PostWithMetadata } from "./components/my-posts";
 

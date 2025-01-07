@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { PostContent } from "./components/post-content";
-import prisma from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { AuthorPosts } from "./components/author-posts";
 import { PostData } from "../page";
 import { createClient } from "@/lib/server-supabase";

@@ -1,18 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { Return } from "@prisma/client/runtime/library";
 
-const prismaClientSignleton = () => {
-  return new PrismaClient();
-};
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-declare const globalThis: {
-  prismaGlobal: Return<typeof prismaClientSignleton>;
-} & typeof global;
+export const prisma = globalForPrisma.prisma || new PrismaClient();
 
-const prisma = globalThis.prismaGlobal ?? prismaClientSignleton();
-
-export default prisma;
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobal = prisma;
-}
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
