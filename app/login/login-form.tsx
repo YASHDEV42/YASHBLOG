@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { login } from "@/actions/User";
 import { useActionState } from "react";
+import { Loader2 } from "lucide-react";
 
 type LoginInitialState = {
   message: string | null;
@@ -24,7 +25,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [state, formAction] = useActionState(login, initialState);
+  const [state, formAction, isPending] = useActionState(login, initialState);
   return (
     <div className={cn("flex flex-col gap-6 mt-10", className)} {...props}>
       <Card>
@@ -95,9 +96,19 @@ export function LoginForm({
                     {state.message}
                   </p>
                 )}
-                <Button className={`w-full `} type="submit">
-                  Login
-                </Button>
+                {isPending ? (
+                  <Button
+                    className={`w-full opacity-50 cursor-none `}
+                    type="submit"
+                    disabled={isPending}
+                  >
+                    Login <Loader2 className="inline animate-spin" />
+                  </Button>
+                ) : (
+                  <Button className={`w-full `} type="submit">
+                    Login
+                  </Button>
+                )}
               </div>
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}

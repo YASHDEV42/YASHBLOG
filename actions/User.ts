@@ -41,7 +41,6 @@ export async function login(
   }
   revalidatePath("/", "layout");
   redirect("/");
-  return { message: "Logged in" };
 }
 
 export const signup = async (

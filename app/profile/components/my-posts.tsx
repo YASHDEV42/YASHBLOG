@@ -87,14 +87,22 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className=" opacity-80 pb-7">
+              <p className="opacity-80 pb-7">
                 {post.excerpt || "No excerpt available."}
               </p>
-              <div className="flex items-center mt-2 space-x-2">
-                <Heart className="w-4 h-4 text-red-500" />
-                <span className="text-md text-muted-foreground">
-                  {post.metadata.likes} likes
-                </span>
+              <div className="flex items-center mt-2 space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Heart className="w-4 h-4 text-red-500" />
+                  <span className="text-md text-muted-foreground">
+                    {post.metadata?.likes | 0} likes
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Eye className="w-4 h-4 text-blue-500" />
+                  <span className="text-md text-muted-foreground">
+                    {post.metadata?.views | 0} views
+                  </span>
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
@@ -108,8 +116,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
                         loading ? "cursor-not-allowed opacity-70" : ""
                       }`}
                     >
-                      <Trash2 size={7} className="w-7 h-7 " />
-                      Delete
+                      <Trash2 size={7} className="w-7 h-7 " /> Delete
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>

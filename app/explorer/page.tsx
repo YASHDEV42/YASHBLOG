@@ -8,6 +8,9 @@ export type PostData = Prisma.PostGetPayload<{
 };
 export default async function ExplorerPage() {
   const posts: PostData[] = await prisma.post.findMany({
+    where: {
+      published: true,
+    },
     include: {
       author: true,
       metadata: true,

@@ -4,8 +4,11 @@ import prisma from "@/lib/db";
 import { AuthorPosts } from "./components/author-posts";
 import { PostData } from "../page";
 import { createClient } from "@/lib/server-supabase";
-import { LikedPosts, User } from "@prisma/client";
+import { Comment, LikedPosts, User } from "@prisma/client";
 
+export type CommentsWithUser = Comment & {
+  user: User;
+};
 export default async function BlogPostPage({
   params,
 }: {
@@ -35,13 +38,26 @@ export default async function BlogPostPage({
   if (!post) {
     redirect("/");
   }
+  const comments: CommentsWithUser[] | [] = await prisma.comment.findMany({
+    where: { postId: post.id },
+    include: {
+      user: true,
+    },
+  });
+  console.log(comments);
+
   if (!user) {
     redirect("/login");
   }
 
   return (
     <article className="container mx-auto px-4 py-8">
-      <PostContent post={post} user={user} ifLikedPost={ifLikedPost} />
+      <PostContent
+        post={post}
+        user={user}
+        ifLikedPost={ifLikedPost}
+        comments={comments}
+      />
       <AuthorPosts posts={authorPosts} />
     </article>
   );

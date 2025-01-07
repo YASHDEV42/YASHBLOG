@@ -1,4 +1,5 @@
 "use server";
+import { CommentsWithUser } from "@/app/explorer/[slug]/page";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -70,6 +71,8 @@ export async function deletePost(id: string) {
 }
 
 export async function togglePublishStatus(id: string) {
+  console.log("This is the post id from the togglepublishstatus", id);
+
   const post = await prisma.post.findUnique({
     where: { id },
     select: { published: true },
@@ -163,3 +166,31 @@ export async function increaseWatch(postId: string) {
     },
   });
 }
+type Data = {
+  content: string;
+  userId: string;
+  postId: string;
+};
+
+export const createComment = async (
+  data: Data
+): Promise<CommentsWithUser | null> => {
+  try {
+    const createdComment = await prisma.comment.create({
+      data: {
+        content: data.content,
+        postId: data.postId,
+        userId: data.userId,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    console.log("Comment created successfully");
+    return createdComment as CommentsWithUser;
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    return null;
+  }
+};
