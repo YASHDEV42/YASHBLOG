@@ -50,6 +50,7 @@ export default async function ProfilePage() {
   return (
     <div className="max-w-[80vw] mx-auto px-4 py-8">
       <ProfileHeader user={user} />
+
       <ProfileTabs user={user} posts={posts} likedPosts={likedPosts} />
     </div>
   );

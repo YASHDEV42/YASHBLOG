@@ -45,21 +45,19 @@ export function Navbar() {
             variant="ghost"
             className={mobile ? "w-full justify-start" : ""}
             onClick={() => {
-              router.push("/explorer");
               if (mobile) setIsOpen(false);
             }}
           >
-            Explorer
+            <Link href="/explorer">Explorer</Link>
           </Button>
           <Button
             variant="ghost"
             className={mobile ? "w-full justify-start" : ""}
             onClick={() => {
-              router.push("/profile");
               if (mobile) setIsOpen(false);
             }}
           >
-            Profile
+            <Link href={`/profile`}>Profile</Link>
           </Button>
           <Button
             variant="ghost"
