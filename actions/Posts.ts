@@ -69,6 +69,23 @@ export async function deletePost(id: string) {
   revalidatePath("/profile");
   redirect("/profile");
 }
+export async function updatePost(postData: PostData) {
+  const { id, title, content, excerpt } = postData;
+  try {
+    await prisma.post.update({
+      where: { id },
+      data: {
+        title,
+        content,
+        excerpt,
+      },
+    });
+    console.log("Post updated successfully");
+  } catch (error) {
+    console.log("Error updating post", error);
+  }
+  revalidatePath("/profile");
+}
 
 export async function togglePublishStatus(id: string) {
   console.log("This is the post id from the togglepublishstatus", id);

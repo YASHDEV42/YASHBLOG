@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Heart, Calendar, Loader } from "lucide-react";
+import { Eye, Heart, Calendar, Loader, Share2 } from "lucide-react";
 import { PostData } from "../../page";
 import { LikedPosts, User } from "@prisma/client";
 import { likePost, unlikePost } from "@/actions/Posts";
 import { Comments } from "./post-comments";
 import { CommentsWithUser } from "../page";
+import { toast } from "sonner";
 // import { likePost } from "@/lib/api";
 
 export function PostContent({
@@ -26,6 +27,31 @@ export function PostContent({
   const [likes, setLikes] = useState(post.metadata?.likes || 0);
   const [isLiked, setIsLiked] = useState(ifLikedPost ? true : false);
   const [isLoading, setIsLoading] = useState(false);
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post.title,
+          text: post.excerpt,
+          url: url,
+        });
+        toast.success("Post shared successfully!");
+      } catch (error) {
+        console.error("Error sharing:", error);
+        toast.error("Failed to share the post");
+      }
+    } else {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          toast.success("Link copied to clipboard!");
+        })
+        .catch(() => {
+          toast.error("Failed to copy link");
+        });
+    }
+  };
 
   const formatDate = (dateString: string | Date) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -118,6 +144,14 @@ export function PostContent({
                 </span>
               </Button>
             )}
+            <Button
+              variant="ghost"
+              className="flex items-center"
+              onClick={handleShare}
+            >
+              <Share2 className="w-4 h-4 mr-1" />
+              <span>Share</span>
+            </Button>
           </div>
         </CardHeader>
         <CardContent>

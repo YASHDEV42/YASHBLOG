@@ -14,7 +14,11 @@ export function AuthorPosts({ posts }: { posts: PostData[] }) {
                 <CardTitle className="text-xl">{post.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className=" text-muted-foreground">{post.excerpt}</p>
+                <p className=" text-muted-foreground">
+                  {post.excerpt.split(" ").length > 15
+                    ? post.excerpt.split(" ").slice(0, 15).join(" ") + "..."
+                    : post.excerpt}
+                </p>
               </CardContent>
             </Card>
           </Link>

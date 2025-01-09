@@ -20,6 +20,18 @@ export default async function BlogPostPage({
     where: { slug },
     include: { author: true, metadata: true },
   });
+  await prisma.post.update({
+    where: { slug },
+    data: {
+      metadata: {
+        update: {
+          views: {
+            increment: 1,
+          },
+        },
+      },
+    },
+  });
   const user = (await supabase.auth.getUser()).data.user as User | null;
 
   const authorPosts = await prisma.post.findMany({

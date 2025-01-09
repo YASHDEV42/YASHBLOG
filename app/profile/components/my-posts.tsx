@@ -91,7 +91,9 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
               </CardHeader>
               <CardContent className="flex-grow">
                 <p className="opacity-80 pb-4 line-clamp-3">
-                  {post.excerpt || "No excerpt available."}
+                  {post.excerpt.split(" ").length > 15
+                    ? post.excerpt.split(" ").slice(0, 15).join(" ") + "..."
+                    : post.excerpt}{" "}
                 </p>
                 <div className="flex items-center mt-2 space-x-4">
                   <div className="flex items-center space-x-2">
@@ -185,7 +187,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
                 </div>
 
                 <Button size="sm" className="text-md p-3 w-full" asChild>
-                  <Link href={`/posts/${post.id}`}>
+                  <Link href={`/explorer/${post.slug}`}>
                     Read More
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Link>

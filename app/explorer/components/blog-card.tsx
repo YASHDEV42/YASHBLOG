@@ -34,7 +34,11 @@ export function BlogCard({ post }: { post: PostData }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow">
-          <p className="text-sm mb-4">{post.excerpt}</p>
+          <p className="text-sm mb-4">
+            {post.excerpt.split(" ").length > 15
+              ? post.excerpt.split(" ").slice(0, 15).join(" ") + "..."
+              : post.excerpt}
+          </p>
           <div className="flex items-center text-sm text-muted-foreground mb-2">
             <User className="w-4 h-4 mr-1" />
             <span>{post.author?.name}</span>
