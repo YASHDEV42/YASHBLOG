@@ -33,9 +33,11 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Post, PostMetadata } from "@prisma/client";
+
 export type PostWithMetadata = Post & {
   metadata: PostMetadata;
 };
+
 const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
   const [posts, setPosts] = useState<PostWithMetadata[]>(initialPosts);
   const [loading, setLoading] = useState(false);
@@ -62,134 +64,138 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
       {posts.length === 0 ? (
         <p className="text-center text-muted-foreground">No posts found.</p>
       ) : (
-        posts.map((post) => (
-          <Card
-            key={post.id}
-            className="bg-card hover:bg-primary-foreground hover:shadow-md transition-all"
-          >
-            <CardHeader className="pb-2">
-              <CardTitle className="flex justify-between items-center text-2xl">
-                <span>{post.title}</span>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">
-                    {format(new Date(post.createdAt), "MMM d, yyyy")}
-                  </span>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/profile/edit-post/${post.id}`}>
-                      <Edit className="w-4 h-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="opacity-80 pb-7">
-                {post.excerpt || "No excerpt available."}
-              </p>
-              <div className="flex items-center mt-2 space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Heart className="w-4 h-4 text-red-500" />
-                  <span className="text-md text-muted-foreground">
-                    {post.metadata?.likes | 0} likes
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Eye className="w-4 h-4 text-blue-500" />
-                  <span className="text-md text-muted-foreground">
-                    {post.metadata?.views | 0} views
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <div className="flex space-x-2">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      disabled={loading}
-                      className={`${
-                        loading ? "cursor-not-allowed opacity-70" : ""
-                      }`}
-                    >
-                      <Trash2 size={7} className="w-7 h-7 " /> Delete
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <Card
+              key={post.id}
+              className="bg-card hover:bg-primary-foreground hover:shadow-md transition-all flex flex-col"
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xl sm:text-2xl gap-2">
+                  <span className="line-clamp-1">{post.title}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                      {format(new Date(post.createdAt), "MMM d, yyyy")}
+                    </span>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/profile/edit-post/${post.id}`}>
+                        <Edit className="w-4 h-4" />
+                      </Link>
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete your post.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete(post.id)}>
-                        {loading ? "Deleting..." : "Delete"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      disabled={loading}
-                      className={`${
-                        loading ? "cursor-not-allowed opacity-70" : ""
-                      }`}
-                    >
-                      {post.published ? (
-                        <>
-                          <EyeOff className="w-4 h-4 mr-2" />
-                          Make Private
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Publish
-                        </>
-                      )}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirm Action</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {post.published
-                          ? "Are you sure you want to make this post private?"
-                          : "Are you sure you want to publish this post?"}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleTogglePublish(post.id)}
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="opacity-80 pb-4 line-clamp-3">
+                  {post.excerpt || "No excerpt available."}
+                </p>
+                <div className="flex items-center mt-2 space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Heart className="w-4 h-4 text-red-500" />
+                    <span className="text-sm text-muted-foreground">
+                      {post.metadata?.likes | 0} likes
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Eye className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm text-muted-foreground">
+                      {post.metadata?.views | 0} views
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col gap-2">
+                <div className="flex flex-col md:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        disabled={loading}
+                        className={`${
+                          loading ? "cursor-not-allowed opacity-70" : ""
+                        } w-full sm:w-auto`}
                       >
-                        Confirm
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+                        <Trash2 size={7} className="w-4 h-4 mr-2" /> Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete your post.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(post.id)}
+                        >
+                          {loading ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
 
-              <Button size="sm" className="text-md p-3" asChild>
-                <Link href={`/posts/${post.id}`}>
-                  Read More
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        ))
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        disabled={loading}
+                        className={`${
+                          loading ? "cursor-not-allowed opacity-70" : ""
+                        } w-full sm:w-auto`}
+                      >
+                        {post.published ? (
+                          <>
+                            <EyeOff className="w-4 h-4 mr-2" />
+                            Make Private
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Publish
+                          </>
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Action</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {post.published
+                            ? "Are you sure you want to make this post private?"
+                            : "Are you sure you want to publish this post?"}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleTogglePublish(post.id)}
+                        >
+                          Confirm
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+
+                <Button size="sm" className="text-md p-3 w-full" asChild>
+                  <Link href={`/posts/${post.id}`}>
+                    Read More
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       )}
-      <Button asChild>
+      <Button asChild className="w-full sm:w-auto">
         <Link
           href="/profile/create-post"
           className="flex items-center justify-center gap-1"
