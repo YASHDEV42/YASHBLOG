@@ -11,7 +11,6 @@ import { likePost, unlikePost } from "@/actions/Posts";
 import { Comments } from "./post-comments";
 import { CommentsWithUser } from "../page";
 import { toast } from "sonner";
-// import { likePost } from "@/lib/api";
 
 export function PostContent({
   post,
@@ -27,6 +26,7 @@ export function PostContent({
   const [likes, setLikes] = useState(post.metadata?.likes || 0);
   const [isLiked, setIsLiked] = useState(ifLikedPost ? true : false);
   const [isLoading, setIsLoading] = useState(false);
+
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
@@ -70,6 +70,7 @@ export function PostContent({
     setIsLiked(true);
     setIsLoading(false);
   };
+
   const handleUnLike = async () => {
     setIsLoading(true);
     setLikes(likes - 1);
@@ -78,16 +79,15 @@ export function PostContent({
     setIsLiked(false);
     setIsLoading(false);
   };
-  console.log(post);
 
   return (
     <>
-      <Card className="w-[80vw] mx-auto mt-10">
+      <Card className="w-full max-w-[90vw] md:max-w-[80vw] mx-auto mt-10">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold mb-2">
+          <CardTitle className="text-2xl md:text-3xl font-bold mb-2">
             {post.title}
           </CardTitle>
-          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-muted-foreground">
             <div className="flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
               <time dateTime={post.createdAt.toString()}>
@@ -98,60 +98,64 @@ export function PostContent({
               <Eye className="w-4 h-4 mr-1" />
               <span>{post.metadata?.views || 0} views</span>
             </div>
-            {isLiked ? (
-              <Button
-                variant="default"
-                className={`flex items-center ${
-                  isLoading ? "cursor-not-allowed" : "cursor-pointer"
-                }`}
-                disabled={isLoading}
-                onClick={handleUnLike}
-              >
-                <Heart
-                  className={`w-4 h-4 mr-1 fill-red-500 text-red-500
-                `}
-                />
-                <span>
-                  {isLoading ? (
-                    <Loader className=" animate-spin inline" />
-                  ) : (
+            <div className="flex items-center space-x-2">
+              {isLiked ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className={`flex items-center ${
+                    isLoading ? "cursor-not-allowed" : "cursor-pointer"
+                  }`}
+                  disabled={isLoading}
+                  onClick={handleUnLike}
+                >
+                  <Heart className="w-4 h-4 mr-1 fill-red-500 text-red-500" />
+                  <span className="hidden sm:inline">
+                    {isLoading ? (
+                      <Loader className="animate-spin inline" />
+                    ) : (
+                      likes
+                    )}{" "}
                     likes
-                  )}{" "}
-                  likes
-                </span>
-              </Button>
-            ) : (
+                  </span>
+                  <span className="sm:hidden">{likes}</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`flex items-center ${
+                    isLoading ? "cursor-not-allowed" : "cursor-pointer"
+                  }`}
+                  disabled={isLoading}
+                  onClick={handleLike}
+                >
+                  <Heart
+                    className={`w-4 h-4 mr-1 ${
+                      likes > 0 ? "fill-red-500 text-red-500" : "text-gray-500"
+                    }`}
+                  />
+                  <span className="hidden sm:inline">
+                    {isLoading ? (
+                      <Loader className="animate-spin inline" />
+                    ) : (
+                      likes
+                    )}{" "}
+                    likes
+                  </span>
+                  <span className="sm:hidden">{likes}</span>
+                </Button>
+              )}
               <Button
                 variant="ghost"
-                className={`flex items-center ${
-                  isLoading ? "cursor-not-allowed" : "cursor-pointer"
-                }`}
-                disabled={isLoading}
-                onClick={handleLike}
+                size="sm"
+                className="flex items-center"
+                onClick={handleShare}
               >
-                <Heart
-                  className={`w-4 h-4 mr-1 ${
-                    likes > 0 ? "fill-red-500 text-red-500" : "text-gray-500"
-                  }`}
-                />
-                <span>
-                  {isLoading ? (
-                    <Loader className=" animate-spin inline" />
-                  ) : (
-                    likes
-                  )}{" "}
-                  likes
-                </span>
+                <Share2 className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Share</span>
               </Button>
-            )}
-            <Button
-              variant="ghost"
-              className="flex items-center"
-              onClick={handleShare}
-            >
-              <Share2 className="w-4 h-4 mr-1" />
-              <span>Share</span>
-            </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -165,7 +169,7 @@ export function PostContent({
             </div>
           </div>
           <div
-            className="editor max-w-none"
+            className="editor max-w-none prose prose-sm sm:prose lg:prose-lg"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </CardContent>
