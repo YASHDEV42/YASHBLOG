@@ -64,7 +64,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
   };
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4">
       {posts.length === 0 ? (
         <p className="text-center text-muted-foreground">No posts found.</p>
       ) : (
@@ -72,7 +72,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
           {posts.map((post) => (
             <Card
               key={post.id}
-              className="bg-card hover:bg-primary-foreground hover:shadow-md transition-all flex flex-col"
+              className="bg-card hover:scale-105 hover:shadow-md transition-all flex flex-col"
             >
               <CardHeader className="pb-2">
                 <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xl sm:text-2xl gap-2">
@@ -119,7 +119,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
                         disabled={loading}
                         className={`${
                           loading ? "cursor-not-allowed opacity-70" : ""
-                        } w-full sm:w-auto`}
+                        } w-full sm:w-auto hover:bg-red-500`}
                       >
                         <Trash2 size={7} className="w-4 h-4 mr-2" /> Delete
                       </Button>

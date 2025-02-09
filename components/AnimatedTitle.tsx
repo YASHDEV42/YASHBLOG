@@ -25,11 +25,13 @@ export function AnimatedTitle() {
       Human stories & <br />
       <span className="relative top-4 inline-block overflow-hidden">
         <span
-          className={`inline-block transition-all duration-1000 ${
-            isAnimating
-              ? "opacity-0 -translate-y-2"
-              : "opacity-100 translate-y-0"
-          }`}
+          className={`inline-block transition-all duration-1000 
+                text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text
+            ${
+              isAnimating
+                ? "opacity-0 -translate-y-2"
+                : "opacity-100 translate-y-0"
+            }`}
           aria-hidden={isAnimating}
         >
           {words[currentWordIndex]}

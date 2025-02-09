@@ -48,7 +48,9 @@ export function Navbar() {
               if (mobile) setIsOpen(false);
             }}
           >
-            <Link href="/explorer">Explorer</Link>
+            <Link href="/explorer" className="text-base">
+              Explorer
+            </Link>
           </Button>
           <Button
             variant="ghost"
@@ -57,11 +59,13 @@ export function Navbar() {
               if (mobile) setIsOpen(false);
             }}
           >
-            <Link href={`/profile`}>Profile</Link>
+            <Link href={`/profile`} className="text-base">
+              Profile
+            </Link>
           </Button>
           <Button
             variant="ghost"
-            className={mobile ? "w-full justify-start" : ""}
+            className={mobile ? "w-full justify-start" : " text-base"}
             onClick={handleSignOut}
           >
             Log out
@@ -71,7 +75,7 @@ export function Navbar() {
         <>
           <Button
             variant="ghost"
-            className={mobile ? "w-full justify-start" : ""}
+            className={mobile ? "w-full justify-start" : " text-base"}
             onClick={() => {
               router.push("/login");
               if (mobile) setIsOpen(false);
@@ -80,7 +84,7 @@ export function Navbar() {
             Log in
           </Button>
           <Button
-            className={mobile ? "w-full" : ""}
+            className={mobile ? "w-full text-base" : ""}
             onClick={() => {
               router.push("/signup");
               if (mobile) setIsOpen(false);
@@ -100,8 +104,11 @@ export function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl sm:text-3xl font-bold tracking-wide hover:tracking-wider transition-all text-primary">
-                YASHBLOG
+              <span className="qsm:text-3xl lg:text-4xl font-bold tracking-wide hover:tracking-wider transition-all duration-300">
+                YASH
+                <span className="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
+                  BLOG
+                </span>
               </span>
             </Link>
           </div>

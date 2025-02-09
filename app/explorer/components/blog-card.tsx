@@ -5,7 +5,15 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Heart, User, Calendar, TrendingUp, Eye } from "lucide-react";
+import {
+  Heart,
+  User,
+  Calendar,
+  TrendingUp,
+  Eye,
+  ArrowRight,
+  ChevronsRight,
+} from "lucide-react";
 import Link from "next/link";
 import { PostData } from "../page";
 
@@ -21,7 +29,7 @@ export function BlogCard({ post }: { post: PostData }) {
 
   return (
     <Link href={`/explorer/${post.slug}`}>
-      <Card className="hover:bg-primary-foreground hover:shadow-md transition-all h-full flex flex-col">
+      <Card className="hover:scale-105 hover:shadow-md transition-all duration-200 h-full flex flex-col group">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             <span>{post.title}</span>
@@ -49,7 +57,17 @@ export function BlogCard({ post }: { post: PostData }) {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">Read more</span>
+          <span className="text-sm text-muted-foreground flex items-center space-x-1 group-hover:opacity-100 transition-opacity duration-400 relative overflow-hidden">
+            {/* ChevronsRight Icon */}
+            <ChevronsRight
+              size={50}
+              className="w-4 h-4 mr-1 absolute -translate-x-full opacity-0 group-hover:translate-x-5 group-hover:scale-150 group-hover:opacity-100 transition-all duration-200 ease-in-out"
+            />
+            {/* Text */}
+            <span className="transition-all duration-200 ease-in-out group-hover:opacity-0">
+              Read more
+            </span>
+          </span>
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
               <Eye className="w-4 h-4 mr-1 text-gray-500" />

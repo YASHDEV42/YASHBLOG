@@ -21,7 +21,7 @@ export default function ProfileTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-3 mb-4">
         <TabsTrigger value="my-posts">My Posts</TabsTrigger>
         <TabsTrigger value="liked-posts">Liked Posts</TabsTrigger>
         <TabsTrigger value="settings">Settings</TabsTrigger>
