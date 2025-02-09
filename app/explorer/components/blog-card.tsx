@@ -11,7 +11,6 @@ import {
   Calendar,
   TrendingUp,
   Eye,
-  ArrowRight,
   ChevronsRight,
 } from "lucide-react";
 import Link from "next/link";
