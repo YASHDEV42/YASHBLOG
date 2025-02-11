@@ -84,9 +84,9 @@ body {
 .editor {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   justify-content: center;
   align-items: left;
+  gap: 1rem;
 }
 .editor h1 {
   font-size: 2em;
@@ -102,14 +102,15 @@ body {
 }
 .editor p {
   font-size: 1em;
+  opacity: 95%;
 }
 /* Style for Blockquote */
 .editor blockquote {
   border-left: 4px solid #ccc;
   margin: 1em 0;
   padding: 0.5em 1em;
-  color: #555;
   font-style: italic;
+  opacity: 80%;
 }
 
 /* Style for Unordered List */

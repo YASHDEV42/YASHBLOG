@@ -16,10 +16,13 @@ export default async function BlogPostPage({
 }) {
   const slug = (await params).slug;
   const supabase = await createClient();
+
   const post: PostData | null = await prisma.post.findUnique({
     where: { slug },
     include: { author: true, metadata: true },
   });
+  console.log("this is the post you entered: ", post);
+
   await prisma.post.update({
     where: { slug },
     data: {

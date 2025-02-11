@@ -1,7 +1,5 @@
 "use server";
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/server-supabase";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 
 type LoginInitialState = {
@@ -39,8 +37,7 @@ export async function login(
   if (error) {
     return { message: error.message };
   }
-  revalidatePath("/", "layout");
-  redirect("/");
+  return { message: "Success" };
 }
 
 export const signup = async (

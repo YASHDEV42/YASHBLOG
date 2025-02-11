@@ -7,7 +7,7 @@ import TitleExcerptForm from "./TitleExcerptForm";
 import PostPreview from "./PostPreview";
 import { createPost } from "@/actions/Posts";
 import { toast } from "sonner";
-
+import { useRouter } from "next/navigation";
 type PostData = {
   title: string;
   excerpt: string;
@@ -22,6 +22,7 @@ const BlogPostEditor = ({ id }: { id: string }) => {
     excerpt: "",
     content: "",
   });
+  const router = useRouter();
 
   const handleContentSave = (content: string) => {
     setPostData((prev) => ({ ...prev, content }));
@@ -59,6 +60,7 @@ const BlogPostEditor = ({ id }: { id: string }) => {
     setLoading(false);
     setPostData({ title: "", excerpt: "", content: "" });
     setStep(1);
+    router.push("/profile");
   };
 
   return (

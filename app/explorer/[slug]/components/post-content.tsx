@@ -36,7 +36,7 @@ export function PostContent({
           text: post.excerpt,
           url: url,
         });
-        toast.success("Post shared successfully!");
+        toast.success("sharing post!");
       } catch (error) {
         console.error("Error sharing:", error);
         toast.error("Failed to share the post");
@@ -52,6 +52,41 @@ export function PostContent({
         });
     }
   };
+  const handleLike = async () => {
+    setIsLoading(true);
+    try {
+      setLikes(likes + 1);
+      const userId: string = user.id;
+      await likePost(post.id, userId);
+      setIsLiked(true);
+      toast.success("Post liked successfully!");
+    } catch (error) {
+      console.error("Error liking the post:", error);
+      toast.error("Failed to like the post");
+      setLikes(likes - 1);
+      setIsLiked(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUnLike = async () => {
+    setIsLoading(true);
+    try {
+      setLikes(likes - 1);
+      const userId: string = user.id;
+      await unlikePost(post.id, userId);
+      setIsLiked(false);
+      toast.success("Post unliked successfully!");
+    } catch (error) {
+      console.error("Error unliking the post:", error);
+      toast.error("Failed to unlike the post");
+      setLikes(likes + 1);
+      setIsLiked(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formatDate = (dateString: string | Date) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -60,24 +95,6 @@ export function PostContent({
       day: "numeric",
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
-  };
-
-  const handleLike = async () => {
-    setIsLoading(true);
-    setLikes(likes + 1);
-    const userId: string = user.id;
-    await likePost(post.id, userId);
-    setIsLiked(true);
-    setIsLoading(false);
-  };
-
-  const handleUnLike = async () => {
-    setIsLoading(true);
-    setLikes(likes - 1);
-    const userId: string = user.id;
-    await unlikePost(post.id, userId);
-    setIsLiked(false);
-    setIsLoading(false);
   };
 
   return (
@@ -169,7 +186,7 @@ export function PostContent({
             </div>
           </div>
           <div
-            className="editor max-w-none prose prose-sm sm:prose lg:prose-lg"
+            className="editor max-w-none  text-background-foreground"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </CardContent>

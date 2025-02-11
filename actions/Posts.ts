@@ -54,6 +54,12 @@ export const createPost = async (postData: PostData): Promise<void> => {
         slug,
         published: true,
         authorId: id as string,
+        metadata: {
+          create: {
+            views: 0,
+            likes: 0,
+          },
+        },
       },
     });
   } catch (error) {
@@ -63,11 +69,39 @@ export const createPost = async (postData: PostData): Promise<void> => {
   console.log("Post created successfully");
 };
 export async function deletePost(id: string) {
-  await prisma.post.delete({
-    where: { id },
-  });
-  revalidatePath("/profile");
-  redirect("/profile");
+  try {
+    // Find the post and its relations
+    const post = await prisma.post.findUnique({
+      where: { id },
+      include: {
+        metadata: true,
+        likes: true,
+        comments: true,
+        categories: true,
+        tags: true,
+      },
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    await prisma.$transaction([
+      prisma.likedPosts.deleteMany({ where: { postId: id } }),
+      prisma.comment.deleteMany({ where: { postId: id } }),
+      prisma.categoryToPost.deleteMany({ where: { A: id } }),
+      prisma.postToTag.deleteMany({ where: { A: id } }),
+      prisma.postMetadata.delete({ where: { postId: id } }),
+    ]);
+
+    await prisma.post.delete({ where: { id } });
+
+    revalidatePath("/profile");
+    redirect("/profile");
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    throw new Error("Failed to delete post.");
+  }
 }
 export async function updatePost(postData: PostData) {
   const { id, title, content, excerpt } = postData;
