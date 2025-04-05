@@ -13,8 +13,14 @@ export const metadata: Metadata = {
 const Home = async () => {
   return (
     <section className="relative h-screen flex items-center overflow-hidden ">
-      <Waves size={300} className="absolute top-40 right-20 text-primary/70" />
-      <Waves size={300} className="absolute top-40 left-20 text-primary/70" />
+      <Waves
+        size={300}
+        className="absolute top-40 right-20 text-primary/90 hidden lg:block"
+      />
+      <Waves
+        size={300}
+        className="absolute top-40 left-20 text-primary/90 hidden lg:block"
+      />
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center">

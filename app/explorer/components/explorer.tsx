@@ -42,6 +42,33 @@ export function Explorer({ posts }: { posts: PostData[] }) {
     }
   }, [searchTerm, selectedFilter, posts]);
 
+  // Helper function to render posts or no-posts message
+  const renderPostsOrMessage = () => {
+    if (filteredPosts.length === 0 && searchTerm) {
+      return (
+        <div className="text-center mt-10">
+          <p className="text-lg text-gray-500">
+            No posts found matching {searchTerm}
+          </p>
+        </div>
+      );
+    } else if (filteredPosts.length === 0) {
+      return (
+        <div className="text-center mt-10">
+          <p className="text-lg text-gray-500">No posts available.</p>
+        </div>
+      );
+    } else {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPosts.map((post) => (
+            <BlogCard key={post.id} post={post} />
+          ))}
+        </div>
+      );
+    }
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -64,13 +91,9 @@ export function Explorer({ posts }: { posts: PostData[] }) {
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Suspense fallback={<p>Loading posts...</p>}>
-          {filteredPosts.map((post) => (
-            <BlogCard key={post.id} post={post} />
-          ))}
-        </Suspense>
-      </div>
+      <Suspense fallback={<p>Loading posts...</p>}>
+        {renderPostsOrMessage()}
+      </Suspense>
     </div>
   );
 }
