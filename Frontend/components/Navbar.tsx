@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toggleTheme } from "@/redux/slices/themeSlice";
 import { RootState } from "@/redux/store";
 import { Moon, Sun, Menu } from "lucide-react";
-import { useAuth } from "@/Frontend/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function Navbar() {

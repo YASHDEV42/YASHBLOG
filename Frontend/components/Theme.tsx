@@ -14,24 +14,22 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-const Theme = ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) => {
+
+const Theme = ({ children }: { children: React.ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   useEffect(() => {
     setIsLoaded(true);
   }, []);
+
   const isDark = useSelector((state: RootState) => state.theme.isDark);
   const theme = isDark ? "dark" : "light";
 
   return (
-    <body
+    <div
       className={`${geistSans.variable} ${geistMono.variable} antialiased ${theme}`}
     >
       {isLoaded ? children : <Spinner />}
-    </body>
+    </div>
   );
 };
 

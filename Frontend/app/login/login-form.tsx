@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation"; // Import useRouter
-import { cn } from "@/Frontend/lib/utils";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,

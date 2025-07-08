@@ -1,6 +1,6 @@
 "use server";
-import { createClient } from "@/Frontend/lib/server-supabase";
-import { prisma } from "@/Frontend/lib/db";
+import { createClient } from "@/lib/server-supabase";
+import { prisma } from "@/lib/db";
 
 type LoginInitialState = {
   message: string | null;

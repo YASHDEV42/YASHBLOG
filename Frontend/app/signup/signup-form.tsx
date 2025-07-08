@@ -1,5 +1,4 @@
 "use client";
-import { cn } from "@/Frontend/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,24 +10,62 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { signup } from "@/actions/User";
-import { useActionState } from "react";
-
-type InitialState = {
-  message: string | null;
-  successful: boolean;
-};
-
-const initialState: InitialState = {
-  message: null,
-  successful: false,
-};
-
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 export function SignupForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [state, formAction, isPending] = useActionState(signup, initialState);
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const { name, email, password, confirmPassword } = formData;
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Signup failed");
+      }
+
+      setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+      router.push("/login");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -40,7 +77,7 @@ export function SignupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction}>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <Button variant="outline" className="w-full">
@@ -75,6 +112,8 @@ export function SignupForm({
                     type="text"
                     name="name"
                     placeholder="Yahya Shannat"
+                    value={formData.name}
+                    onChange={handleChange}
                     required
                   />
                 </div>
@@ -85,6 +124,8 @@ export function SignupForm({
                     type="email"
                     name="email"
                     placeholder="m@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                   />
                 </div>
@@ -94,6 +135,9 @@ export function SignupForm({
                     id="password"
                     name="password"
                     type="password"
+                    placeholder="********"
+                    value={formData.password}
+                    onChange={handleChange}
                     required
                   />
                 </div>
@@ -103,20 +147,19 @@ export function SignupForm({
                     id="confirm-password"
                     name="confirmPassword"
                     type="password"
+                    placeholder="********"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
                     required
                   />
                 </div>
-                {state.message && (
-                  <p
-                    className={`font-bold ${
-                      state.successful ? "text-green-500" : "text-red-500"
-                    }`}
-                  >
-                    {state.message}
-                  </p>
+                {error && (
+                  <div className="text-red-500 text-sm text-center">
+                    {error}
+                  </div>
                 )}
-                <Button className="w-full" disabled={isPending} type="submit">
-                  {isPending ? "Signing Up..." : "Sign up"}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Signing up..." : "Sign Up"}
                 </Button>
               </div>
               <div className="text-center text-sm">

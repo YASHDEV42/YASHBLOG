@@ -18,13 +18,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <ProviderComponent>
-        <Theme>
-          <Navbar />
-          {children}
-          <Toaster />
-        </Theme>
-      </ProviderComponent>
+      <body>
+        <ProviderComponent>
+          <Theme>
+            <Navbar />
+            {children}
+            <Toaster />
+          </Theme>
+        </ProviderComponent>
+      </body>
     </html>
   );
 }
