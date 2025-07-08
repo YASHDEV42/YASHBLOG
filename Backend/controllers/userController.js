@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   const { email, name, password } = req.body;
   if (!email || !name || !password) {
     return res.status(400).json({ message: "All fields are required" });
@@ -41,10 +41,10 @@ const register = async (req, res) => {
 
     res.status(201).json({ token, user: newUser });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
@@ -70,10 +70,10 @@ const login = async (req, res) => {
     });
     res.status(200).json({ token, user });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
-const getUserProfile = async (req, res) => {
+const getUserProfile = async (req, res, next) => {
   const userId = req.params.id;
   try {
     const user = await User.findById(userId)
@@ -88,11 +88,11 @@ const getUserProfile = async (req, res) => {
     }
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
-const updateUserProfile = async (req, res) => {
+const updateUserProfile = async (req, res, next) => {
   const userId = req.params.id;
   const { name, bio, profilePicture } = req.body;
   try {
@@ -112,10 +112,10 @@ const updateUserProfile = async (req, res) => {
     }
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
-const followUser = async (req, res) => {
+const followUser = async (req, res, next) => {
   const { userId, followId } = req.body;
   if (
     !mongoose.Types.ObjectId.isValid(userId) ||
@@ -157,11 +157,11 @@ const followUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Follow error:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
-const unfollowUser = async (req, res) => {
+const unfollowUser = async (req, res, next) => {
   const { userId, unfollowId } = req.body;
   if (
     !mongoose.Types.ObjectId.isValid(userId) ||
@@ -203,7 +203,7 @@ const unfollowUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Unfollow error:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 

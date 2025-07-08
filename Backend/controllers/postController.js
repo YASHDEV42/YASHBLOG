@@ -1,7 +1,7 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
 const slugify = require("slugify");
-const createPost = async (req, res) => {
+const createPost = async (req, res, next) => {
   try {
     const { title, content, excerpt, categories } = req.body;
     if (!title || !content) {
@@ -35,12 +35,11 @@ const createPost = async (req, res) => {
 
     res.status(201).json(savedPost);
   } catch (err) {
-    console.error("Create Post Error:", err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-const getPost = async (req, res) => {
+const getPost = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
@@ -62,12 +61,11 @@ const getPost = async (req, res) => {
 
     res.status(200).json(post);
   } catch (err) {
-    console.error("Get Post Error:", err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-const getAllPosts = async (req, res) => {
+const getAllPosts = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -93,12 +91,11 @@ const getAllPosts = async (req, res) => {
       posts,
     });
   } catch (err) {
-    console.error("Get All Posts Error:", err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-const updatePost = async (req, res) => {
+const updatePost = async (req, res, next) => {
   try {
     const { slug } = req.params;
     const { title, content, excerpt, categories } = req.body;
@@ -127,12 +124,11 @@ const updatePost = async (req, res) => {
 
     res.status(200).json(post);
   } catch (err) {
-    console.error("Update Post Error:", err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-const deletePost = async (req, res) => {
+const deletePost = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
@@ -148,12 +144,11 @@ const deletePost = async (req, res) => {
 
     res.status(200).json({ message: "Post deleted successfully" });
   } catch (err) {
-    console.error("Delete Post Error:", err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-const togglepublished = async (req, res) => {
+const togglepublished = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
@@ -165,12 +160,11 @@ const togglepublished = async (req, res) => {
     await post.save();
     res.status(200).json({ message: "Post published status updated", post });
   } catch (err) {
-    console.error("Toggle Published Error:", err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-const toggleLike = async (req, res) => {
+const toggleLike = async (req, res, next) => {
   try {
     const { slug } = req.params;
     const userId = req.userId;
@@ -188,11 +182,10 @@ const toggleLike = async (req, res) => {
     await post.save();
     res.status(200).json({ message: "Post like status updated", post });
   } catch (err) {
-    console.error("Toggle Like Error:", err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
-const getPostByAuthor = async (req, res) => {
+const getPostByAuthor = async (req, res, next) => {
   try {
     const authorId = req.userId;
     const page = parseInt(req.query.page) || 1;
@@ -220,8 +213,7 @@ const getPostByAuthor = async (req, res) => {
       posts,
     });
   } catch (err) {
-    console.error("Get Post By Author Error:", err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
