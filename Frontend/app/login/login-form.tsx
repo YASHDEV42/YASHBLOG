@@ -12,27 +12,51 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { login } from "@/actions/User";
-import { useActionState } from "react";
-import { Loader2 } from "lucide-react";
 
-type LoginInitialState = {
-  message: string | null;
-};
-const initialState: LoginInitialState = {
-  message: null,
-};
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
-  const [state, formAction, isPending] = useActionState(login, initialState);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  if (state?.message === "Success") {
-    router.push("/");
-  }
+    try {
+      const response = await fetch("http://localhost:5000/api/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Login failed");
+      }
+
+      const data = await response.json();
+      // Handle successful login, e.g., store token, redirect
+      console.log("Login successful:", data);
+      router.push("/");
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6 mt-10", className)} {...props}>
@@ -44,20 +68,32 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction}>
+          <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" name="email" required />
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  required
+                  onChange={handleChange}
+                  value={formData.email}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" name="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  name="password"
+                  required
+                  onChange={handleChange}
+                  value={formData.password}
+                />
               </div>
-              {state?.message && state.message !== "Success" && (
-                <p className="text-red-700">{state.message}</p>
-              )}
-              {isPending ? (
+
+              {isLoading ? (
                 <Button className="w-full opacity-50" type="submit" disabled>
                   Login <Loader2 className="inline animate-spin" />
                 </Button>

@@ -7,7 +7,7 @@ const {
   updateComment,
   getCommentById,
   getCommentsByUser,
-  replyComment,
+  replayComment,
 } = require("../controllers/commentController.js");
 const auth = require("../middleware/auth.js");
 router.post("/", auth, createComment);
@@ -17,5 +17,6 @@ router.delete("/:id", auth, deleteComment);
 router.put("/:id", auth, updateComment);
 router.get("/:id", auth, getCommentById);
 router.get("/user/:userId", auth, getCommentsByUser);
-router.post("/reply/:commentId", auth, replyComment);
+router.post("/reply/:commentId", auth, replayComment);
+
 module.exports = router;

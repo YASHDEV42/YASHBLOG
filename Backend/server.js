@@ -29,7 +29,7 @@ Tells Express to automatically parse incoming requests with Content-Type: applic
 // API Routes
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/post", require("./routes/postRoutes"));
-app.use("/api/comment", require("./routes/commentRoutes"));
+app.use("/api/comment", require("./routes/commentRoutes.js"));
 app.use("/api/notification", require("./routes/notificationRoutes"));
 // Error Handling Middleware
 app.use(errorHandler);

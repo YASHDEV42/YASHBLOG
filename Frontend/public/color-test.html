@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Color Test</title>
+    <style>
+      /* Import your styles for testing */
+      @import url("/globals.css");
+    </style>
+  </head>
+  <body class="p-8 space-y-4">
+    <h1 class="text-3xl font-bold text-foreground">Tailwind v4 Color Test</h1>
+
+    <div class="space-y-4">
+      <div
+        class="bg-background text-foreground p-4 border border-border rounded-lg"
+      >
+        <h2 class="text-xl font-semibold">Background & Foreground</h2>
+        <p>This uses bg-background and text-foreground classes.</p>
+      </div>
+
+      <div class="bg-primary text-primary-foreground p-4 rounded-lg">
+        <h2 class="text-xl font-semibold">Primary Colors</h2>
+        <p>This uses bg-primary and text-primary-foreground classes.</p>
+      </div>
+
+      <div class="bg-secondary text-secondary-foreground p-4 rounded-lg">
+        <h2 class="text-xl font-semibold">Secondary Colors</h2>
+        <p>This uses bg-secondary and text-secondary-foreground classes.</p>
+      </div>
+
+      <div class="bg-accent text-accent-foreground p-4 rounded-lg">
+        <h2 class="text-xl font-semibold">Accent Colors</h2>
+        <p>This uses bg-accent and text-accent-foreground classes.</p>
+      </div>
+
+      <div class="bg-muted text-muted-foreground p-4 rounded-lg">
+        <h2 class="text-xl font-semibold">Muted Colors</h2>
+        <p>This uses bg-muted and text-muted-foreground classes.</p>
+      </div>
+
+      <button
+        onclick="toggleDark()"
+        class="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90"
+      >
+        Toggle Dark Mode
+      </button>
+    </div>
+
+    <script>
+      function toggleDark() {
+        document.documentElement.classList.toggle("dark");
+      }
+    </script>
+  </body>
+</html>

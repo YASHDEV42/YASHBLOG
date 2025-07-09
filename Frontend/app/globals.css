@@ -1,92 +1,134 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-body {
-  font-family: Arial, Helvetica, sans-serif;
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
 }
 
-@layer base {
-  :root {
-    /* Light mode colors */
-    --background: 0 0% 98%; /* #F9F9F9 */
-    --foreground: 210 29% 20%; /* #1F2937 */
+:root {
+  --radius: 0.5rem;
+  --background: 0 0% 98%;
+  --foreground: 210 29% 20%;
+  --primary: 222 78% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 78% 60%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 222 78% 60%;
+  --accent-foreground: 0 0% 100%;
+  --muted: 210 16% 93%;
+  --muted-foreground: 210 16% 30%;
+  --border: 210 16% 85%;
+  --input: 210 16% 85%;
+  --ring: 222 78% 53%;
+}
 
-    --primary: 222 78% 53%; /* #2563EB */
-    --primary-foreground: 0 0% 100%; /* White for contrast */
-
-    --secondary: 222 78% 60%; /* #10B981 */
-    --secondary-foreground: 0 0% 100%; /* White */
-
-    /* Use accent for additional highlights if needed – here we mirror secondary */
-    --accent: 222 78% 60%;
-    --accent-foreground: 0 0% 100%;
-
-    --muted: 210 16% 93%; /* Soft light gray */
-    --muted-foreground: 210 16% 30%; /* Darker gray for text on muted backgrounds */
-
-    --border: 210 16% 85%; /* Medium gray */
-    --input: 210 16% 85%;
-    --ring: 222 78% 53%; /* Same as primary */
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    /* Dark mode colors – invert background and text, adjust muted tones */
-    --background: 210 29% 10%; /* Dark slate background */
-    --foreground: 0 0% 98%; /* Light text */
-
-    --primary: 222 78% 53%; /* Keeping the same blue for consistency */
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 222 78% 60%; /* Same teal */
-    --secondary-foreground: 0 0% 100%;
-
-    --accent: 222 78% 60%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Darker muted background and lighter muted text for contrast */
-    --muted: 210 16% 25%;
-    --muted-foreground: 210 16% 93%;
-
-    --border: 210 16% 25%;
-    --input: 210 16% 25%;
-    --ring: 222 78% 53%;
-  }
+.dark {
+  --background: 210 29% 10%;
+  --foreground: 0 0% 98%;
+  --primary: 222 78% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 78% 60%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 222 78% 60%;
+  --accent-foreground: 0 0% 100%;
+  --muted: 210 16% 25%;
+  --muted-foreground: 210 16% 93%;
+  --border: 210 16% 25%;
+  --input: 210 16% 25%;
+  --ring: 222 78% 53%;
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
+    outline-color: hsl(var(--ring));
   }
   body {
     @apply bg-background text-foreground;
+    font-family: Arial, Helvetica, sans-serif;
+    padding-right: 0 !important;
+    overflow: auto !important;
   }
 }
-body {
-  padding-right: 0 !important;
-  overflow: auto !important;
-}
-.editor:focus,
-.editor:focus-visible {
-  outline: none !important;
-  border: none !important;
-  box-shadow: none !important;
+
+@layer utilities {
+  .bg-background {
+    background-color: hsl(var(--background));
+  }
+  .text-foreground {
+    color: hsl(var(--foreground));
+  }
+  .bg-primary {
+    background-color: hsl(var(--primary));
+  }
+  .text-primary {
+    color: hsl(var(--primary));
+  }
+  .text-primary-foreground {
+    color: hsl(var(--primary-foreground));
+  }
+  .bg-secondary {
+    background-color: hsl(var(--secondary));
+  }
+  .text-secondary-foreground {
+    color: hsl(var(--secondary-foreground));
+  }
+  .bg-accent {
+    background-color: hsl(var(--accent));
+  }
+  .text-accent-foreground {
+    color: hsl(var(--accent-foreground));
+  }
+  .bg-muted {
+    background-color: hsl(var(--muted));
+  }
+  .text-muted-foreground {
+    color: hsl(var(--muted-foreground));
+  }
+  .border-border {
+    border-color: hsl(var(--border));
+  }
+  .bg-input {
+    background-color: hsl(var(--input));
+  }
+  .ring-ring {
+    --tw-ring-color: hsl(var(--ring));
+  }
+  .border-accent-foreground {
+    border-color: hsl(var(--accent-foreground));
+  }
 }
 
-/* Remove focus styles for child elements as well */
+.editor:focus,
+.editor:focus-visible,
 .editor [contenteditable]:focus {
   outline: none !important;
   border: none !important;
   box-shadow: none !important;
 }
+
 .editor {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: left;
+  align-items: flex-start;
   gap: 1rem;
 }
+
 .editor h1 {
   font-size: 2em;
 }
@@ -103,7 +145,6 @@ body {
   font-size: 1em;
   opacity: 95%;
 }
-/* Style for Blockquote */
 .editor blockquote {
   border-left: 4px solid #ccc;
   margin: 1em 0;
@@ -111,25 +152,21 @@ body {
   font-style: italic;
   opacity: 80%;
 }
-
-/* Style for Unordered List */
+.editor ul,
+.editor ol {
+  margin-left: 1.5em;
+  padding-left: 0.5em;
+}
 .editor ul {
   list-style-type: disc;
-  margin-left: 1.5em;
-  padding-left: 0.5em;
 }
-
-/* Style for Ordered List */
 .editor ol {
   list-style-type: decimal;
-  margin-left: 1.5em;
-  padding-left: 0.5em;
 }
-
-/* Style for List Items */
 .editor li {
   margin-bottom: 0.5em;
 }
 .editor hr {
-  @apply border-t-2 border-accent-foreground my-4;
+  border-top: 2px solid hsl(var(--accent-foreground));
+  margin: 1rem 0;
 }
