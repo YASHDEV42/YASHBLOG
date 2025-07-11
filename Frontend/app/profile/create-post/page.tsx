@@ -1,22 +1,37 @@
+"use client";
+
 import React from "react";
 import BlogPostEditor from "./components/BlogPostEditor";
-import { createClient } from "@/Frontend/lib/server-supabase";
-import { redirect } from "next/navigation";
-const page = async () => {
-  const supabase = await createClient();
+import { useAuth } from "@/lib/hooks/use-auth";
+import { Spinner } from "@/components/Spinner";
 
-  const { data } = await supabase.auth.getUser();
-  if (!data?.user) {
-    redirect("/login");
+const Page = () => {
+  const { user, loading, initialized, isAuthenticated } = useAuth();
+
+  // Show loading spinner while auth state is being initialized
+  if (!initialized || loading) {
+    return (
+      <div className="w-full flex justify-center items-center min-h-[200px]">
+        <Spinner />
+      </div>
+    );
   }
-  const id: string = data.user.id;
+
+  // Show login message if user is not authenticated
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="w-full flex flex-col items-center justify-center mx-auto p-4">
+        <p className="text-center text-lg">Please log in to create a post.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full flex flex-col items-center justify-center mx-auto">
-      <h1>Create Post</h1>
-      <BlogPostEditor id={id} />
+    <div className="w-full flex flex-col items-center justify-center mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Create Post</h1>
+      <BlogPostEditor id={user._id} />
     </div>
   );
 };
 
-export default page;
+export default Page;

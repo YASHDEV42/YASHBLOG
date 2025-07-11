@@ -1,6 +1,20 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 
+const createTokenAndSetCookie = (res, userId) => {
+  const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+    maxAge: 60 * 60 * 1000, // 1 hour
+  });
+
+  return token;
+};
 const register = async (req, res, next) => {
   const { email, name, password } = req.body;
   if (!email || !name || !password) {
@@ -32,14 +46,9 @@ const register = async (req, res, next) => {
     const newUser = new User({ email, name, password });
     await newUser.save();
 
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    if (!token) {
-      return res.status(500).json({ message: "Token generation failed" });
-    }
+    const token = createTokenAndSetCookie(res, newUser._id);
 
-    res.status(201).json({ token, user: newUser });
+    res.status(201).json({ user: newUser });
   } catch (error) {
     next(error);
   }
@@ -65,10 +74,8 @@ const login = async (req, res, next) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password!" });
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    res.status(200).json({ token, user });
+    const token = createTokenAndSetCookie(res, user._id);
+    res.status(200).json({ user });
   } catch (error) {
     next(error);
   }
@@ -282,6 +289,53 @@ const markNotificationAsRead = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+  res.status(200).json({ message: "Logged out successfully" });
+};
+const getCurrentUser = (req, res) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    try {
+      const user = await User.findById(decoded.id)
+        .populate("posts")
+        .populate("likedPosts")
+        .populate("comments")
+        .populate("notifications")
+        .populate("followers")
+        .populate("following");
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.status(200).json({ user: decoded });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+};
+const getLikedPosts = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const user = await User.findById(userId).populate("likedPosts");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user.likedPosts);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 module.exports = {
   register,
@@ -295,4 +349,7 @@ module.exports = {
   getUserPosts,
   getUserNotifications,
   markNotificationAsRead,
+  logout,
+  getCurrentUser,
+  getLikedPosts,
 };

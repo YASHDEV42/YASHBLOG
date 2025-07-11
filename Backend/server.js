@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler.js");
 const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
 dotenv.config();
 /*
 Purpose:
@@ -13,7 +14,20 @@ const app = express();
 const server = http.createServer(app);
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Replace with your frontend URL
+    credentials: true, // Allows cookies to be sent with requests));
+    /*
+Purpose:
+Enables Cross-Origin Resource Sharing (CORS) so that your frontend can make requests to your
+backend without being blocked by the browser's same-origin policy.
+*/
+  })
+);
+
+app.use(cookieParser());
+
 /* 
 Purpose:
 Allows your frontend (e.g., on localhost:3000) to communicate with your backend (e.g., on localhost:5000), which are on different origins.

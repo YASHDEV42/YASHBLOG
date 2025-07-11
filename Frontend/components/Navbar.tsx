@@ -1,27 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { toggleTheme } from "@/redux/slices/themeSlice";
 import { RootState } from "@/redux/store";
 import { Moon, Sun, Menu } from "lucide-react";
-import { useAuth } from "@/lib/hooks/useAuth";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { clearUser } from "@/redux/slices/userSlice";
+import { UserService } from "@/lib/services/user.service";
 
 export function Navbar() {
-  const { user, isLoading, signOut } = useAuth();
   const isDark = useSelector((state: RootState) => state.theme.isDark);
-  const dispatch = useDispatch();
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const dispatch = useDispatch();
+  const { user, loading } = useSelector(
+    (state: RootState) => state.user,
+    shallowEqual
+  );
 
+  // Handle sign out with proper API call and state cleanup
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
-    setIsOpen(false);
+    try {
+      await UserService.logout();
+      dispatch(clearUser());
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Still clear local state even if API call fails
+      dispatch(clearUser());
+      window.location.href = "/login";
+    }
   };
 
   const ThemeToggle = () => (
@@ -37,7 +47,7 @@ export function Navbar() {
 
   const NavItems = ({ mobile = false }) => (
     <>
-      {isLoading ? (
+      {loading ? (
         <span className="text-muted-foreground">Loading...</span>
       ) : user ? (
         <>
@@ -59,13 +69,13 @@ export function Navbar() {
               if (mobile) setIsOpen(false);
             }}
           >
-            <Link href={`/profile`} className="text-base">
+            <Link href="/profile" className="text-base">
               Profile
             </Link>
           </Button>
           <Button
             variant="ghost"
-            className={mobile ? "w-full justify-start" : " text-base"}
+            className={mobile ? "w-full justify-start" : ""}
             onClick={handleSignOut}
           >
             Log out
@@ -75,18 +85,18 @@ export function Navbar() {
         <>
           <Button
             variant="ghost"
-            className={mobile ? "w-full justify-start" : " text-base"}
+            className={mobile ? "w-full justify-start" : ""}
             onClick={() => {
-              router.push("/login");
+              window.location.href = "/login";
               if (mobile) setIsOpen(false);
             }}
           >
             Log in
           </Button>
           <Button
-            className={mobile ? "w-full text-base" : ""}
+            className={mobile ? "w-full" : ""}
             onClick={() => {
-              router.push("/signup");
+              window.location.href = "/signup";
               if (mobile) setIsOpen(false);
             }}
           >

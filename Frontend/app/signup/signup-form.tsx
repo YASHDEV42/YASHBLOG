@@ -13,11 +13,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useToast } from "@/lib/hooks/use-toast";
+
 export function SignupForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
+  const { register } = useAuth();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,23 +50,31 @@ export function SignupForm({
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/user/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Signup failed");
+      const result = await register(email, password, name);
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message || "Account created successfully",
+        });
+        setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+        router.push("/");
+      } else {
+        setError(result.message || "Registration failed");
+        toast({
+          title: "Error",
+          description: result.message || "Registration failed",
+          variant: "destructive",
+        });
       }
-
-      setFormData({ name: "", email: "", password: "", confirmPassword: "" });
-      router.push("/login");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

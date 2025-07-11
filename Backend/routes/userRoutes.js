@@ -13,6 +13,9 @@ const {
   getUserPosts,
   getUserNotifications,
   markNotificationAsRead,
+  logout,
+  getCurrentUser,
+  getLikedPosts,
 } = require("../controllers/userController.js");
 const auth = require("../middleware/auth.js");
 
@@ -27,5 +30,8 @@ router.get("/following/:id", auth, getFollowing);
 router.get("/posts/:id", auth, getUserPosts);
 router.get("/notifications/:id", auth, getUserNotifications);
 router.post("/notifications/read", auth, markNotificationAsRead);
+router.post("/logout", logout);
+router.get("/current", auth, getCurrentUser);
+router.get("/liked-posts/:id", auth, getLikedPosts);
 
 module.exports = router;

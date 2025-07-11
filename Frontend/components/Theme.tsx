@@ -26,7 +26,7 @@ const Theme = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div
-      className={`${geistSans.variable} ${geistMono.variable} antialiased ${theme}`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased ${theme} bg-background text-foreground`}
     >
       {isLoaded ? children : <Spinner />}
     </div>

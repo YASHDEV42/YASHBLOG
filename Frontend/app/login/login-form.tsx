@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,47 +12,56 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useToast } from "@/lib/hooks/use-toast";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
+  const { login } = useAuth();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const result = await login(formData.email, formData.password);
 
-      if (!response.ok) {
-        throw new Error("Login failed");
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message || "Login successful",
+        });
+        router.push("/");
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "Login failed",
+          variant: "destructive",
+        });
       }
-
-      const data = await response.json();
-      // Handle successful login, e.g., store token, redirect
-      console.log("Login successful:", data);
-      router.push("/");
     } catch (error) {
       console.error("Login error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

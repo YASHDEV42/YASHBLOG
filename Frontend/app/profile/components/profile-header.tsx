@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "@supabase/supabase-js";
+import { User } from "@/types";
 
 export default async function ProfileHeader({ user }: { user: User }) {
-  const userName = user.user_metadata?.name || "User";
+  const userName = user.name || "User";
   const userEmail = user.email || "No email provided";
   const avatarFallbackText = userName.slice(0, 2).toUpperCase();
   return (

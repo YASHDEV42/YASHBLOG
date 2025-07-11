@@ -1,11 +1,14 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import ProfileHeader from "./components/profile-header";
 import ProfileTabs from "./components/profile-tabs";
 import { redirect } from "next/navigation";
-import { createClient } from "@/Frontend/lib/server-supabase";
-import { prisma } from "@/Frontend/lib/db";
-import { LikedPostsWithPostWithAuthor } from "@/types";
-import { PostWithMetadata } from "./components/my-posts";
+
+import type {
+  User,
+  PostWithMetadata,
+  LikedPostsWithPostWithAuthor,
+} from "@/types";
 
 export const metadata: Metadata = {
   title: "User Profile",
@@ -13,44 +16,49 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
+  const headersList = await headers();
+  const cookie = headersList.get("cookie");
+  const baseUrl = process.env.API_URL || "http://localhost:5000";
 
-  const { data } = await supabase.auth.getUser();
-  const user = data?.user;
-
-  if (!user || typeof user.id !== "string") {
-    redirect("/login");
-  }
-
-  const posts = (await prisma.post.findMany({
-    where: {
-      authorId: user.id,
+  // ✅ Token fetch
+  const tokenRes = await fetch(`${baseUrl}/api/user/current`, {
+    headers: {
+      cookie: cookie ?? "",
     },
-    include: {
-      author: true,
-      metadata: true,
-    },
-  })) as PostWithMetadata[];
+  });
 
-  const likedPosts = (await prisma.likedPosts.findMany({
-    where: {
-      userId: user.id,
-    },
-    include: {
-      post: {
-        include: {
-          author: true,
-        },
-      },
-    },
-  })) as LikedPostsWithPostWithAuthor[] | [];
+  if (!tokenRes.ok) redirect("/login");
 
-  console.log(likedPosts);
+  const { user: token }: { user: { id: string } | null } =
+    await tokenRes.json();
+
+  if (!token) redirect("/login");
+
+  const [postsRes, likedPostsRes, userRes] = await Promise.all([
+    fetch(`${baseUrl}/api/user/posts/${token.id}`, {
+      headers: { cookie: cookie ?? "" },
+      cache: "no-store",
+    }),
+    fetch(`${baseUrl}/api/user/liked-posts/${token.id}`, {
+      headers: { cookie: cookie ?? "" },
+      cache: "no-store",
+    }),
+    fetch(`${baseUrl}/api/user/profile/${token.id}`, {
+      headers: { cookie: cookie ?? "" },
+      cache: "no-store",
+    }),
+  ]);
+
+  if (!postsRes.ok || !likedPostsRes.ok || !userRes.ok)
+    return <p>Error loading data</p>;
+
+  const user: User = await userRes.json();
+  const posts: PostWithMetadata[] = await postsRes.json();
+  const likedPosts: LikedPostsWithPostWithAuthor[] = await likedPostsRes.json();
 
   return (
-    <div className="max-w-[80vw] mx-auto px-4 py-8">
+    <div className="max-w-[80vw] mx-auto px-4 py-8 bg-background">
       <ProfileHeader user={user} />
-
       <ProfileTabs user={user} posts={posts} likedPosts={likedPosts} />
     </div>
   );

@@ -32,11 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Post, PostMetadata } from "@prisma/client";
-
-export type PostWithMetadata = Post & {
-  metadata: PostMetadata;
-};
+import { PostWithMetadata } from "@/types";
 
 const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
   const [posts, setPosts] = useState<PostWithMetadata[]>(initialPosts);
@@ -46,8 +42,8 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
     setLoading(true);
     await togglePublishStatus(id);
     setPosts(
-      posts.map((post) =>
-        post.id === id ? { ...post, published: !post.published } : post
+      posts.map((post: PostWithMetadata) =>
+        post._id === id ? { ...post, published: !post.published } : post
       )
     );
     setLoading(false);
@@ -57,7 +53,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
     setLoading(true);
     try {
       await deletePost(id);
-      setPosts(posts.filter((post) => post.id !== id));
+      setPosts(posts.filter((post) => post._id !== id));
     } finally {
       setLoading(false);
     }
@@ -71,7 +67,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <Card
-              key={post.id}
+              key={post._id}
               className="bg-card hover:scale-105 hover:shadow-md transition-all flex flex-col"
             >
               <CardHeader className="pb-2">
@@ -82,7 +78,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
                       {format(new Date(post.createdAt), "MMM d, yyyy")}
                     </span>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/profile/edit-post/${post.id}`}>
+                      <Link href={`/profile/edit-post/${post._id}`}>
                         <Edit className="w-4 h-4" />
                       </Link>
                     </Button>
@@ -99,13 +95,13 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
                   <div className="flex items-center space-x-2">
                     <Heart className="w-4 h-4 text-red-500" />
                     <span className="text-sm text-muted-foreground">
-                      {post.metadata?.likes | 0} likes
+                      {post.likes} likes
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Eye className="w-4 h-4 text-blue-500" />
                     <span className="text-sm text-muted-foreground">
-                      {post.metadata?.views | 0} views
+                      {post.metadata_views} views
                     </span>
                   </div>
                 </div>
@@ -135,7 +131,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDelete(post.id)}
+                          onClick={() => handleDelete(post._id)}
                         >
                           {loading ? "Deleting..." : "Delete"}
                         </AlertDialogAction>
@@ -177,7 +173,7 @@ const App = ({ posts: initialPosts }: { posts: PostWithMetadata[] }) => {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleTogglePublish(post.id)}
+                          onClick={() => handleTogglePublish(post._id)}
                         >
                           Confirm
                         </AlertDialogAction>

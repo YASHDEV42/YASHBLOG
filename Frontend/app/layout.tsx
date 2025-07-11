@@ -3,6 +3,7 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import Theme from "@/components/Theme";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/components/AuthProvider";
 
 import ProviderComponent from "@/components/ProviderComponent";
 
@@ -20,11 +21,13 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ProviderComponent>
-          <Theme>
-            <Navbar />
-            {children}
-            <Toaster />
-          </Theme>
+          <AuthProvider>
+            <Theme>
+              <Navbar />
+              {children}
+              <Toaster />
+            </Theme>
+          </AuthProvider>
         </ProviderComponent>
       </body>
     </html>
