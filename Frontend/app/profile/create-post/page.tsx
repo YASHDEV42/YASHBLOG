@@ -3,7 +3,7 @@
 import React from "react";
 import BlogPostEditor from "./components/BlogPostEditor";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Spinner } from "@/components/Spinner";
+import Spinner from "@/components/Spinner";
 
 const Page = () => {
   const { user, loading, initialized, isAuthenticated } = useAuth();
@@ -29,7 +29,7 @@ const Page = () => {
   return (
     <div className="w-full flex flex-col items-center justify-center mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Create Post</h1>
-      <BlogPostEditor id={user._id} />
+      <BlogPostEditor />
     </div>
   );
 };

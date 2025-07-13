@@ -45,7 +45,6 @@ const getPost = async (req, res, next) => {
 
     const post = await Post.findOne({ slug })
       .populate("author", "name email")
-      .populate("categories", "name")
       .populate({
         path: "comments",
         populate: { path: "user", select: "name email" },
@@ -77,7 +76,6 @@ const getAllPosts = async (req, res, next) => {
       .skip(skip)
       .limit(limit)
       .populate("author", "name email")
-      .populate("categories", "name")
       .populate({
         path: "comments",
         populate: { path: "user", select: "name email" },
@@ -199,7 +197,6 @@ const getPostByAuthor = async (req, res, next) => {
       .skip(skip)
       .limit(limit)
       .populate("author", "name email")
-      .populate("categories", "name")
       .populate({
         path: "comments",
         populate: { path: "user", select: "name email" },

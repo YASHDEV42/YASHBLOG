@@ -5,16 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TiptapEditor from "./TiptapEditor";
 import TitleExcerptForm from "./TitleExcerptForm";
 import PostPreview from "./PostPreview";
-import { createPost } from "@/actions/Posts";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { usePosts } from "@/lib/hooks/use-posts";
+import { useAuth } from "@/lib/hooks/use-auth";
 type PostData = {
   title: string;
   excerpt: string;
   content: string;
 };
 
-const BlogPostEditor = ({ id }: { id: string }) => {
+const BlogPostEditor = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState(1);
   const [postData, setPostData] = useState<PostData>({
@@ -22,6 +23,8 @@ const BlogPostEditor = ({ id }: { id: string }) => {
     excerpt: "",
     content: "",
   });
+  const { createPost } = usePosts();
+  const { user } = useAuth();
   const router = useRouter();
 
   const handleContentSave = (content: string) => {
@@ -37,30 +40,38 @@ const BlogPostEditor = ({ id }: { id: string }) => {
   };
 
   const handleConfirm = async () => {
+    if (!user) {
+      toast.error("You must be logged in to create a post");
+      return;
+    }
+
     setLoading(true);
-    const data = {
-      id,
-      title: postData.title,
-      excerpt: postData.excerpt,
-      content: postData.content,
-    };
-    toast.promise(createPost(data), {
-      loading: "Creating post...",
-      success: () => {
-        setLoading(false);
+
+    try {
+      // Create the post data that matches the API expectation
+      const data = {
+        title: postData.title,
+        excerpt: postData.excerpt,
+        content: postData.content,
+        published: true, // You can make this configurable
+      };
+
+      const result = await createPost(data);
+
+      if (result.success) {
+        toast.success("Post created successfully");
         setPostData({ title: "", excerpt: "", content: "" });
         setStep(1);
-        return "Post created successfully";
-      },
-      error: () => {
-        setLoading(false);
-        return "Error creating post";
-      },
-    });
-    setLoading(false);
-    setPostData({ title: "", excerpt: "", content: "" });
-    setStep(1);
-    router.push("/profile");
+        router.push("/profile");
+      } else {
+        toast.error(result.message || "Error creating post");
+      }
+    } catch (error) {
+      console.error("Error creating post:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -1,31 +1,68 @@
 "use client";
-
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, Heart, Calendar, Loader, Share2 } from "lucide-react";
-import { PostData } from "../../page";
-import { LikedPosts, User } from "@prisma/client";
-import { likePost, unlikePost } from "@/actions/Posts";
 import { Comments } from "./post-comments";
-import { CommentsWithUser } from "../page";
 import { toast } from "sonner";
+import { usePost, usePosts } from "@/lib/hooks/use-posts";
+import { useAuth } from "@/lib/hooks/use-auth";
+import Spinner from "@/components/Spinner";
 
-export function PostContent({
-  post,
-  user,
-  ifLikedPost,
-  comments,
-}: {
-  post: PostData;
-  user: User;
-  ifLikedPost: LikedPosts | null;
-  comments: CommentsWithUser[] | [];
-}) {
-  const [likes, setLikes] = useState(post.metadata?.likes || 0);
-  const [isLiked, setIsLiked] = useState(ifLikedPost ? true : false);
+export function PostContent({ slug }: { slug: string }) {
+  const { post, loading, error } = usePost(slug);
+  const { user } = useAuth();
+  const { toggleLike } = usePosts();
+  const [localLikes, setLocalLikes] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize likes when post is loaded
+  useEffect(() => {
+    if (post) {
+      setLocalLikes(post.metadata_likes || 0);
+      if (user && post.likes) {
+        setIsLiked(post.likes.includes(user._id));
+      }
+    }
+  }, [post, user]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="w-full max-w-[90vw] md:max-w-[80vw] mx-auto mt-10 flex justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="w-full max-w-[90vw] md:max-w-[80vw] mx-auto mt-10">
+        <Card>
+          <CardContent className="text-center py-10">
+            <p className="text-red-500 mb-4">Error loading post: {error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Post not found
+  if (!post) {
+    return (
+      <div className="w-full max-w-[90vw] md:max-w-[80vw] mx-auto mt-10">
+        <Card>
+          <CardContent className="text-center py-10">
+            <p className="text-gray-500">Post not found</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -53,17 +90,31 @@ export function PostContent({
     }
   };
   const handleLike = async () => {
+    if (!user || !post) {
+      toast.error("Please log in to like posts");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      setLikes(likes + 1);
-      const userId: string = user.id;
-      await likePost(post.id, userId);
+      // Optimistic update
+      setLocalLikes((prev) => prev + 1);
       setIsLiked(true);
-      toast.success("Post liked successfully!");
+
+      const result = await toggleLike(post.slug);
+      if (result.success) {
+        toast.success("Post liked successfully!");
+      } else {
+        // Revert on failure
+        setLocalLikes((prev) => prev - 1);
+        setIsLiked(false);
+        toast.error(result.message || "Failed to like the post");
+      }
     } catch (error) {
       console.error("Error liking the post:", error);
       toast.error("Failed to like the post");
-      setLikes(likes - 1);
+      // Revert on error
+      setLocalLikes((prev) => prev - 1);
       setIsLiked(false);
     } finally {
       setIsLoading(false);
@@ -71,17 +122,31 @@ export function PostContent({
   };
 
   const handleUnLike = async () => {
+    if (!user || !post) {
+      toast.error("Please log in to interact with posts");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      setLikes(likes - 1);
-      const userId: string = user.id;
-      await unlikePost(post.id, userId);
+      // Optimistic update
+      setLocalLikes((prev) => prev - 1);
       setIsLiked(false);
-      toast.success("Post unliked successfully!");
+
+      const result = await toggleLike(post.slug);
+      if (result.success) {
+        toast.success("Post unliked successfully!");
+      } else {
+        // Revert on failure
+        setLocalLikes((prev) => prev + 1);
+        setIsLiked(true);
+        toast.error(result.message || "Failed to unlike the post");
+      }
     } catch (error) {
       console.error("Error unliking the post:", error);
       toast.error("Failed to unlike the post");
-      setLikes(likes + 1);
+      // Revert on error
+      setLocalLikes((prev) => prev + 1);
       setIsLiked(true);
     } finally {
       setIsLoading(false);
@@ -113,7 +178,7 @@ export function PostContent({
             </div>
             <div className="flex items-center">
               <Eye className="w-4 h-4 mr-1" />
-              <span>{post.metadata?.views || 0} views</span>
+              <span>{post.metadata_views || 0} views</span>
             </div>
             <div className="flex items-center space-x-2">
               {isLiked ? (
@@ -131,11 +196,11 @@ export function PostContent({
                     {isLoading ? (
                       <Loader className="animate-spin inline" />
                     ) : (
-                      likes
+                      localLikes
                     )}{" "}
                     likes
                   </span>
-                  <span className="sm:hidden">{likes}</span>
+                  <span className="sm:hidden">{localLikes}</span>
                 </Button>
               ) : (
                 <Button
@@ -149,18 +214,20 @@ export function PostContent({
                 >
                   <Heart
                     className={`w-4 h-4 mr-1 ${
-                      likes > 0 ? "fill-red-500 text-red-500" : "text-gray-500"
+                      localLikes > 0
+                        ? "fill-red-500 text-red-500"
+                        : "text-gray-500"
                     }`}
                   />
                   <span className="hidden sm:inline">
                     {isLoading ? (
                       <Loader className="animate-spin inline" />
                     ) : (
-                      likes
+                      localLikes
                     )}{" "}
                     likes
                   </span>
-                  <span className="sm:hidden">{likes}</span>
+                  <span className="sm:hidden">{localLikes}</span>
                 </Button>
               )}
               <Button
@@ -178,11 +245,11 @@ export function PostContent({
         <CardContent>
           <div className="flex items-center space-x-2 mb-4">
             <Avatar>
-              <AvatarImage alt={post.author?.name || undefined} />
-              <AvatarFallback>{post.author?.name?.charAt(0)}</AvatarFallback>
+              <AvatarImage alt={post.author || undefined} />
+              <AvatarFallback>{post.author?.charAt(0) || "A"}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">{post.author?.name}</p>
+              <p className="font-semibold">{post.author || "Anonymous"}</p>
             </div>
           </div>
           <div
@@ -191,11 +258,17 @@ export function PostContent({
           />
         </CardContent>
       </Card>
-      <Comments
-        postId={post.id}
-        initialComments={comments}
-        currentUser={user}
-      />
+      {user && (
+        <Comments
+          postId={post._id}
+          initialComments={post.comments || []}
+          currentUser={{
+            name: user.name || null,
+            id: user._id,
+            email: user.email,
+          }}
+        />
+      )}
     </>
   );
 }

@@ -1,7 +1,27 @@
+"use client";
+import Spinner from "@/components/Spinner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "@/types";
+import { RootState } from "@/redux/store";
+import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
-export default async function ProfileHeader({ user }: { user: User }) {
+export default function ProfileHeader() {
+  const { user: currentUser, loading: authLoading } = useSelector(
+    (state: RootState) => state.user
+  );
+  const router = useRouter();
+  if (!currentUser && !authLoading) {
+    router.replace("/login");
+    return;
+  }
+  if (authLoading || !currentUser) {
+    return (
+      <div className="w-full flex justify-center items-center min-h-[200px]">
+        <Spinner />
+      </div>
+    );
+  }
+  const user = currentUser;
   const userName = user.name || "User";
   const userEmail = user.email || "No email provided";
   const avatarFallbackText = userName.slice(0, 2).toUpperCase();

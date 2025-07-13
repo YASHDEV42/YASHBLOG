@@ -5,6 +5,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
+import { Post } from "@/types";
 import {
   Heart,
   User,
@@ -14,9 +15,8 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import Link from "next/link";
-import { PostData } from "../page";
 
-export function BlogCard({ post }: { post: PostData }) {
+export function BlogCard({ post }: { post: Post }) {
   const formatDate = (dateString: string | Date) => {
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -48,7 +48,9 @@ export function BlogCard({ post }: { post: PostData }) {
           </p>
           <div className="flex items-center text-sm text-muted-foreground mb-2">
             <User className="w-4 h-4 mr-1" />
-            <span>{post.author?.name}</span>
+            <span>
+              {typeof post.author === "string" ? post.author : post.author.name}
+            </span>
           </div>
           <div className="flex items-center text-sm text-muted-foreground">
             <Calendar className="w-4 h-4 mr-1" />

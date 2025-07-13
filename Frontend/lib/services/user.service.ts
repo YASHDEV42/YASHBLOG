@@ -1,16 +1,9 @@
 import { apiClient } from "../api-client";
+import { User, PostWithMetadata } from "@/types";
 
 /**
  * User-related types
  */
-export interface ApiUser {
-  _id: string;
-  email: string;
-  username: string;
-  avatar?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface LoginRequest {
   email: string;
@@ -26,7 +19,7 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  user: ApiUser;
+  user: User;
   message: string;
 }
 
@@ -37,14 +30,13 @@ export class UserService {
   /**
    * Get current authenticated user
    */
-  static async getCurrentUser(): Promise<ApiUser | null> {
+  static async getCurrentUser(): Promise<User | null> {
     try {
-      const response = await apiClient.get<{ user: ApiUser }>(
-        "/api/user/current"
-      );
+      const response = await apiClient.get<{ user: User }>("/api/user/current");
       return response.user;
     } catch (error) {
-      console.error("Failed to get current user:", error);
+      console.log("Failed to get current user:", error);
+
       return null;
     }
   }
@@ -74,13 +66,13 @@ export class UserService {
    * Get user posts
    */
   static async getUserPosts(userId: string): Promise<unknown[]> {
-    return apiClient.get<unknown[]>(`/api/user/posts/${userId}`);
+    return apiClient.get<PostWithMetadata[]>(`/api/user/posts/${userId}`);
   }
 
   /**
    * Get user liked posts
    */
   static async getUserLikedPosts(userId: string): Promise<unknown[]> {
-    return apiClient.get<unknown[]>(`/api/user/liked-posts/${userId}`);
+    return apiClient.get<PostWithMetadata[]>(`/api/user/liked-posts/${userId}`);
   }
 }

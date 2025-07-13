@@ -1,18 +1,30 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BlogCard } from "./blog-card";
-import { PostData } from "../page";
+import { usePosts } from "@/lib/hooks/use-posts";
+import { Post } from "@/types";
 
 const filters = ["All", "Trending", "Most Likes", "Newest"];
 
-export function Explorer({ posts }: { posts: PostData[] }) {
+export function Explorer() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const { posts, loading, error, fetchPosts } = usePosts();
 
-  const filteredPosts = useMemo(() => {
+  useEffect(() => {
+    const loadPosts = async () => {
+      const result = await fetchPosts();
+      if (!result.success) {
+        console.error("Failed to fetch posts:", result.message);
+      }
+    };
+    loadPosts();
+  }, []);
+
+  const filteredPosts: Post[] = useMemo(() => {
     const filtered = posts.filter((post) =>
       post.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -42,6 +54,35 @@ export function Explorer({ posts }: { posts: PostData[] }) {
     }
   }, [searchTerm, selectedFilter, posts]);
 
+  // If loading, show loading state
+  if (loading) {
+    return (
+      <div className="text-center mt-10">
+        <p className="text-lg text-gray-500">Loading posts...</p>
+      </div>
+    );
+  }
+
+  // If error, show error state
+  if (error) {
+    return (
+      <div className="text-center mt-10">
+        <p className="text-lg text-red-500">Error: {error}</p>
+        <button
+          onClick={() => {
+            const loadPosts = async () => {
+              await fetchPosts();
+            };
+            loadPosts();
+          }}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   // Helper function to render posts or no-posts message
   const renderPostsOrMessage = () => {
     if (filteredPosts.length === 0 && searchTerm) {
@@ -62,7 +103,7 @@ export function Explorer({ posts }: { posts: PostData[] }) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPosts.map((post) => (
-            <BlogCard key={post.id} post={post} />
+            <BlogCard key={post._id} post={post} />
           ))}
         </div>
       );

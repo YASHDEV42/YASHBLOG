@@ -22,12 +22,14 @@ export interface Post {
   excerpt: string;
   slug: string;
   published: boolean;
-  author: string;
+  author: string | User;
   categories: string[];
   comments: string[];
   likes: string[];
-  metadata_views: number;
-  metadata_likes: number;
+  metadata: {
+    views: number;
+    likes: number;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -104,13 +106,12 @@ export interface ApiUser {
   updatedAt: string;
 }
 
-// Type conversion utilities
 export function convertApiUserToUser(apiUser: ApiUser): User {
   return {
     _id: apiUser._id,
     email: apiUser.email,
-    name: apiUser.username, // Map username to name
-    password: "", // Not included in API responses for security
+    name: apiUser.username,
+    password: "",
     profilePicture: apiUser.avatar,
     bio: "",
     posts: [],

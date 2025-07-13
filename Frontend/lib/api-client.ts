@@ -1,17 +1,11 @@
-/**
- * API Configuration and Base URL Management
- */
-
-// Environment-based API configuration
+// Object for storing API configuration
 const API_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
   timeout: 10000,
   credentials: "include" as RequestCredentials,
 } as const;
 
-/**
- * Custom error class for API errors
- */
+// Custom error class for API errors
 export class APIError extends Error {
   constructor(message: string, public status: number, public code?: string) {
     super(message);
@@ -19,9 +13,7 @@ export class APIError extends Error {
   }
 }
 
-/**
- * Base API client with common functionality
- */
+// Base API client with common functionality
 class APIClient {
   private baseURL: string;
   private defaultOptions: RequestInit;
@@ -36,9 +28,7 @@ class APIClient {
     };
   }
 
-  /**
-   * Generic request method
-   */
+  // Generic request method
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -57,7 +47,16 @@ class APIClient {
       const response = await fetch(url, config);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        let errorData: { message?: string; code?: string } = {};
+        try {
+          const text = await response.text();
+          if (text) {
+            errorData = JSON.parse(text);
+          }
+        } catch (parseError) {
+          console.error("Failed to parse error response:", parseError);
+        }
+
         throw new APIError(
           errorData.message ||
             `HTTP ${response.status}: ${response.statusText}`,
@@ -66,7 +65,27 @@ class APIClient {
         );
       }
 
-      return await response.json();
+      // Parse response body safely
+      const text = await response.text();
+      if (!text) {
+        return {} as T;
+      }
+
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error(
+          "Failed to parse response JSON:",
+          parseError,
+          "Response text:",
+          text
+        );
+        throw new APIError(
+          "Invalid JSON response from server",
+          response.status,
+          "JSON_PARSE_ERROR"
+        );
+      }
     } catch (error) {
       if (error instanceof APIError) {
         throw error;
@@ -79,9 +98,6 @@ class APIClient {
     }
   }
 
-  /**
-   * HTTP Methods
-   */
   async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: "GET" });
   }
@@ -127,5 +143,4 @@ class APIClient {
   }
 }
 
-// Export singleton instance
 export const apiClient = new APIClient();

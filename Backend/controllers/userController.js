@@ -307,18 +307,14 @@ const getCurrentUser = (req, res) => {
       return res.status(401).json({ message: "Invalid token" });
     }
     try {
-      const user = await User.findById(decoded.id)
-        .populate("posts")
-        .populate("likedPosts")
-        .populate("comments")
-        .populate("notifications")
-        .populate("followers")
-        .populate("following");
+      // Get user without populating related fields to avoid circular references
+      const user = await User.findById(decoded.id).select("-password");
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.status(200).json({ user: decoded });
+      res.status(200).json({ user });
     } catch (error) {
+      console.error("getCurrentUser error:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -43,21 +43,16 @@ import {
   EyeOff,
 } from "lucide-react";
 
-interface SettingsProps {
-  user: User;
-}
-
-export default function Settings({ user }: SettingsProps) {
+export default function Settings({ user }: { user: User | null }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Profile form state
   const [profileData, setProfileData] = useState<UpdateProfileData>({
-    name: user.name || "",
-    bio: user.bio || "",
-    profilePicture: user.profilePicture || "",
+    name: user?.name || "",
+    bio: user?.bio || "",
+    profilePicture: user?.profilePicture || "",
   });
 
   // Password form state
@@ -130,7 +125,7 @@ export default function Settings({ user }: SettingsProps) {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/user/profile/${user._id}`,
+        `http://localhost:5000/api/user/profile/${user?._id}`,
         {
           method: "PUT",
           headers: {
@@ -153,11 +148,11 @@ export default function Settings({ user }: SettingsProps) {
         text: "Profile updated successfully!",
       });
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating profile:", error);
       setProfileMessage({
         type: "error",
-        text: error.message || "Something went wrong.",
+        text: "Something went wrong.",
       });
     } finally {
       setIsProfileLoading(false);
@@ -212,7 +207,7 @@ export default function Settings({ user }: SettingsProps) {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/user/change-password/${user._id}`,
+        `http://localhost:5000/api/user/change-password/${user?._id}`,
         {
           method: "PUT",
           headers: {
@@ -246,11 +241,11 @@ export default function Settings({ user }: SettingsProps) {
         setIsDialogOpen(false);
         setPasswordMessage(null);
       }, 2000);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error changing password:", error);
       setPasswordMessage({
         type: "error",
-        text: error.message || "Something went wrong.",
+        text: "Something went wrong.",
       });
     } finally {
       setIsPasswordLoading(false);
@@ -265,7 +260,15 @@ export default function Settings({ user }: SettingsProps) {
       .toUpperCase()
       .slice(0, 2);
   };
-
+  if (!user) {
+    return (
+      <div className="max-w-[80vw] mx-auto px-4 py-8 bg-background">
+        <p className="text-red-500 text-center">
+          You must be logged in to access settings.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="space-y-2">

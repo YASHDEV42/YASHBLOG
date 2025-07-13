@@ -2,7 +2,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
 import { clearUser, setUser } from "@/redux/slices/userSlice";
 import { UserService } from "@/lib/services/user.service";
-import { convertApiUserToUser } from "@/types";
 
 /**
  * Custom hook for authentication state and actions
@@ -20,7 +19,7 @@ export function useAuth() {
   const login = async (email: string, password: string) => {
     try {
       const response = await UserService.login({ email, password });
-      dispatch(setUser(convertApiUserToUser(response.user)));
+      dispatch(setUser(response.user));
       return { success: true, message: response.message };
     } catch (error: unknown) {
       const errorMessage =
@@ -39,7 +38,7 @@ export function useAuth() {
         password,
         username,
       });
-      dispatch(setUser(convertApiUserToUser(response.user)));
+      dispatch(setUser(response.user));
       return { success: true, message: response.message };
     } catch (error: unknown) {
       const errorMessage =
@@ -72,7 +71,7 @@ export function useAuth() {
     try {
       const currentUser = await UserService.getCurrentUser();
       if (currentUser) {
-        dispatch(setUser(convertApiUserToUser(currentUser)));
+        dispatch(setUser(currentUser));
       } else {
         dispatch(clearUser());
       }
