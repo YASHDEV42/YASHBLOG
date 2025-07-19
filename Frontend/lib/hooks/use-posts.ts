@@ -132,18 +132,19 @@ export function usePost(slug: string) {
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   /**
    * Fetch single post
    */
   const fetchPost = async () => {
     if (!slug) return;
-
+    console.log("Fetching post with slug:", slug);
     setLoading(true);
     setError(null);
     try {
       const postData = await PostService.getPost(slug);
+      console.log("Fetched post:", postData);
       setPost(postData);
+      console.log("Post set in state:", postData);
       return { success: true, data: postData };
     } catch (error: unknown) {
       const errorMessage =

@@ -50,14 +50,12 @@ const getPost = async (req, res, next) => {
         populate: { path: "user", select: "name email" },
       })
       .populate("likes", "name email");
-
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
     post.metadata.views += 1;
     await post.save();
-
     res.status(200).json(post);
   } catch (err) {
     next(err);

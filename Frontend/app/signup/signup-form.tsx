@@ -31,7 +31,6 @@ export function SignupForm({
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -51,7 +50,7 @@ export function SignupForm({
 
     try {
       const result = await register(email, password, name);
-      
+
       if (result.success) {
         toast({
           title: "Success",
@@ -68,7 +67,8 @@ export function SignupForm({
         });
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      const errorMessage =
+        err instanceof Error ? err.message : "An error occurred";
       setError(errorMessage);
       toast({
         title: "Error",

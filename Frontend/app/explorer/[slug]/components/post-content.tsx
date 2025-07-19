@@ -11,21 +11,40 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import Spinner from "@/components/Spinner";
 
 export function PostContent({ slug }: { slug: string }) {
-  const { post, loading, error } = usePost(slug);
+  const { post, loading, error, fetchPost } = usePost(slug);
   const { user } = useAuth();
   const { toggleLike } = usePosts();
   const [localLikes, setLocalLikes] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  console.log("PostContent rendered with slug:", post);
 
-  // Initialize likes when post is loaded
+  // Fetch post on mount and slug change
+  useEffect(() => {
+    const loadPost = async () => {
+      if (!slug) return;
+
+      setIsLoading(true);
+      try {
+        await fetchPost();
+      } catch (error) {
+        console.error("Error fetching post:", error);
+        toast.error("Failed to load post");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadPost();
+  }, []);
+
   useEffect(() => {
     if (post) {
-      setLocalLikes(post.metadata_likes || 0);
+      setLocalLikes(post.metadata.likes || 0);
       if (user && post.likes) {
         setIsLiked(post.likes.includes(user._id));
       }
     }
+    console.log("PostContent rendered with slug:", post);
   }, [post, user]);
 
   // Loading state
@@ -178,7 +197,7 @@ export function PostContent({ slug }: { slug: string }) {
             </div>
             <div className="flex items-center">
               <Eye className="w-4 h-4 mr-1" />
-              <span>{post.metadata_views || 0} views</span>
+              <span>{post.metadata.views || 0} views</span>
             </div>
             <div className="flex items-center space-x-2">
               {isLiked ? (
@@ -246,10 +265,12 @@ export function PostContent({ slug }: { slug: string }) {
           <div className="flex items-center space-x-2 mb-4">
             <Avatar>
               <AvatarImage alt={post.author || undefined} />
-              <AvatarFallback>{post.author?.charAt(0) || "A"}</AvatarFallback>
+              <AvatarFallback>
+                {post.author.name.charAt(0) || "A"}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">{post.author || "Anonymous"}</p>
+              <p className="font-semibold">{post.author.name || "Anonymous"}</p>
             </div>
           </div>
           <div

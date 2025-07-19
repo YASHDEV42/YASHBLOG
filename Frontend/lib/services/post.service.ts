@@ -58,7 +58,8 @@ export class PostService {
       const response = await apiClient.get<{ post: Post }>(
         `${this.BASE_PATH}/${slug}`
       );
-      return response.post;
+      console.log("Fetched post:", response);
+      return response;
     } catch (error) {
       console.error(`Failed to fetch post ${slug}:`, error);
       throw error;
