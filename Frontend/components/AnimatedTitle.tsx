@@ -26,7 +26,7 @@ export function AnimatedTitle() {
       <span className="relative top-4 inline-block overflow-hidden">
         <span
           className={`inline-block transition-all duration-1000 
-                text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text
+                text-transparent bg-gradient-to-r from-accent to-accent-foreground bg-clip-text
             ${
               isAnimating
                 ? "opacity-0 -translate-y-2"

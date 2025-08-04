@@ -8,17 +8,19 @@ import { Label } from "@/components/ui/label";
 
 interface TitleExcerptFormProps {
   onSave: (title: string, excerpt: string) => void;
-  initialTitle: string;
-  initialExcerpt: string;
+  initialTitle?: string;
+  initialExcerpt?: string;
+  disabled?: boolean;
 }
 
 const TitleExcerptForm: React.FC<TitleExcerptFormProps> = ({
   onSave,
-  initialTitle,
-  initialExcerpt,
+  initialTitle = "",
+  initialExcerpt = "",
+  disabled = false,
 }) => {
-  const [title, setTitle] = useState(initialTitle);
-  const [excerpt, setExcerpt] = useState(initialExcerpt);
+  const [title, setTitle] = useState<string>(initialTitle);
+  const [excerpt, setExcerpt] = useState<string>(initialExcerpt);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +36,7 @@ const TitleExcerptForm: React.FC<TitleExcerptFormProps> = ({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          disabled={disabled}
         />
       </div>
       <div>
@@ -43,9 +46,10 @@ const TitleExcerptForm: React.FC<TitleExcerptFormProps> = ({
           value={excerpt}
           onChange={(e) => setExcerpt(e.target.value)}
           required
+          disabled={disabled}
         />
       </div>
-      <Button type="submit" className="w-full">
+      <Button type="submit" className="w-full" disabled={disabled}>
         Next: Preview Post
       </Button>
     </form>

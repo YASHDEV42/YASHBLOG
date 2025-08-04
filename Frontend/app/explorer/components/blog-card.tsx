@@ -5,7 +5,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Post } from "@/types";
+import { CompletePost } from "@/types";
 import {
   Heart,
   User,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export function BlogCard({ post }: { post: Post }) {
+export function BlogCard({ post }: { post: CompletePost }) {
   const formatDate = (dateString: string | Date) => {
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -42,7 +42,7 @@ export function BlogCard({ post }: { post: Post }) {
         </CardHeader>
         <CardContent className="flex-grow">
           <p className="text-sm mb-4">
-            {post.excerpt.split(" ").length > 15
+            {post.excerpt && post.excerpt.split(" ").length > 15
               ? post.excerpt.split(" ").slice(0, 15).join(" ") + "..."
               : post.excerpt}
           </p>

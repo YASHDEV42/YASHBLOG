@@ -2,43 +2,63 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { usePosts } from "@/lib/hooks/posts/usePosts";
-import { Post } from "@/types";
+import { usePost } from "@/lib/hooks/posts/usePost";
+import { CompletePost } from "@/types";
+import { Eye, Heart, Calendar, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function AuthorPosts({ slug }: { slug: string }) {
-  const { posts, loading } = usePosts();
-  const [authorPosts, setAuthorPosts] = useState<Post[]>([]);
-
-  // Get the current post to find the author
-  const currentPost = posts?.find((post: Post) => post.slug === slug);
+  const { data: posts, isLoading: postsLoading } = usePosts();
+  const { data: currentPost, isLoading: postLoading } = usePost(slug);
+  const [authorPosts, setAuthorPosts] = useState<CompletePost[]>([]);
 
   useEffect(() => {
     if (posts && posts.length > 0 && currentPost) {
-      // Filter posts by the same author, excluding the current post
-      const filteredPosts = posts.filter(
-        (post) => post.author === currentPost.author && post.slug !== slug
-      );
+      const filteredPosts = posts.filter((post) => {
+        const postAuthorId =
+          typeof post.author === "object" ? post.author._id : post.author;
+        const currentAuthorId =
+          typeof currentPost.author === "object"
+            ? currentPost.author._id
+            : currentPost.author;
+
+        return postAuthorId === currentAuthorId && post.slug !== slug;
+      });
+
       setAuthorPosts(filteredPosts.slice(0, 4)); // Limit to 4 posts
     } else {
       setAuthorPosts([]);
     }
   }, [posts, currentPost, slug]);
 
-  // Show loading state
-  if (loading) {
+  const authorInfo =
+    currentPost && typeof currentPost.author === "object"
+      ? currentPost.author
+      : null;
+
+  const isLoading = postsLoading || postLoading;
+
+  if (isLoading) {
     return (
-      <div className="mt-8 w-[80vw] mx-auto">
-        <h2 className="text-2xl font-bold mb-4">More from this author</h2>
+      <div className="mt-8 w-full max-w-[90vw] md:max-w-[80vw] mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 bg-muted rounded-full animate-pulse"></div>
+          <div className="h-6 bg-muted rounded w-48 animate-pulse"></div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[...Array(4)].map((_, index) => (
             <Card key={index} className="h-full animate-pulse">
               <CardHeader>
-                <div className="h-6 bg-muted rounded w-3/4"></div>
+                <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="h-4 bg-muted rounded w-full"></div>
                   <div className="h-4 bg-muted rounded w-2/3"></div>
+                  <div className="h-4 bg-muted rounded w-1/3"></div>
                 </div>
               </CardContent>
             </Card>
@@ -48,41 +68,132 @@ export function AuthorPosts({ slug }: { slug: string }) {
     );
   }
 
-  // Don't show section if no author posts available
-  if (!authorPosts || authorPosts.length === 0) {
+  if (!authorPosts || authorPosts.length === 0 || !currentPost) {
     return null;
   }
 
   return (
-    <div className="mt-8 w-[80vw] mx-auto">
-      <h2 className="text-2xl font-bold mb-4">More from this author</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="mt-8 w-full max-w-[90vw] md:max-w-[80vw] mx-auto">
+      {/* Enhanced Header with Author Info */}
+      <div className="flex items-center gap-3 mb-6">
+        {authorInfo ? (
+          <>
+            <Avatar className="w-8 h-8">
+              <AvatarImage
+                src={authorInfo.profilePicture || ""}
+                alt={authorInfo.name || "Author"}
+              />
+              <AvatarFallback>
+                {authorInfo.name?.charAt(0) || "A"}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h2 className="text-2xl font-bold">
+                More from {authorInfo.name || "this author"}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {authorPosts.length} more post
+                {authorPosts.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <User className="w-8 h-8 text-muted-foreground" />
+            <div>
+              <h2 className="text-2xl font-bold">More from this author</h2>
+              <p className="text-sm text-muted-foreground">
+                {authorPosts.length} more post
+                {authorPosts.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Enhanced Posts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {authorPosts.map((post) => (
           <Link href={`/explorer/${post.slug}`} key={post._id}>
-            <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <CardTitle className="text-xl line-clamp-2">
-                  {post.title}
-                </CardTitle>
+            <Card className="h-full hover:shadow-lg transition-all duration-200 hover:scale-[1.02] group">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                    {post.title}
+                  </CardTitle>
+                  {post.published && (
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      Published
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Calendar className="w-3 h-3" />
+                  <time dateTime={post.createdAt}>
+                    {new Date(post.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </time>
+                </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground line-clamp-3">
-                  {post.excerpt.split(" ").length > 15
+              <CardContent className="pt-0">
+                {/* Excerpt */}
+                <p className="text-muted-foreground line-clamp-3 mb-4 text-sm leading-relaxed">
+                  {post.excerpt && post.excerpt.split(" ").length > 15
                     ? post.excerpt.split(" ").slice(0, 15).join(" ") + "..."
-                    : post.excerpt}
+                    : post.excerpt || "No excerpt available"}
                 </p>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  {new Date(post.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
+
+                {/* Stats */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Heart className="w-3 h-3 text-red-500" />
+                      <span>{post.metadata?.likes || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Eye className="w-3 h-3 text-blue-500" />
+                      <span>{post.metadata?.views || 0}</span>
+                    </div>
+                  </div>
+                  {/* Categories */}
+                  {post.categories && post.categories.length > 0 && (
+                    <div className="flex gap-1">
+                      {post.categories.slice(0, 2).map((category, index) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs px-2 py-0"
+                        >
+                          {category}
+                        </Badge>
+                      ))}
+                      {post.categories.length > 2 && (
+                        <Badge variant="outline" className="text-xs px-2 py-0">
+                          +{post.categories.length - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
           </Link>
         ))}
       </div>
+      {/* Link to Author's Profile */}
+      {authorInfo && (
+        <div className="mt-6 text-center">
+          <Link
+            href={`/author/${authorInfo._id}`}
+            className="text-primary hover:underline text-sm font-medium"
+          >
+            View all posts by {authorInfo.name} →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

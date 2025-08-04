@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BlogCard } from "./blog-card";
 import { usePosts } from "@/lib/hooks/posts/usePosts";
-import { Post } from "@/types";
+import { CompletePost } from "@/types";
 
 const filters = ["All", "Trending", "Most Likes", "Newest"];
 
@@ -14,7 +14,7 @@ export function Explorer() {
   const [selectedFilter, setSelectedFilter] = useState("All");
   const { data: posts = [], isLoading, error } = usePosts();
 
-  const filteredPosts: Post[] = useMemo(() => {
+  const filteredPosts: CompletePost[] = useMemo(() => {
     const filtered = posts.filter((post) =>
       post.title.toLowerCase().includes(searchTerm.toLowerCase())
     );

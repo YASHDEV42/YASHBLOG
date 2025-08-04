@@ -4,27 +4,38 @@ const User = require("../models/User");
 
 const createComment = async (req, res, next) => {
   try {
-    const { postId, content } = req.body;
-    const userId = req.userId;
-
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    const { postId, content, userId } = req.body;
 
     const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
+    console.log(
+      "Creating comment for post:",
+      postId,
+      "by user:",
+      userId,
+      "with content:",
+      content
+    );
+
     const comment = new Comment({
       content,
       post: postId,
-      author: userId,
+      user: userId, // Changed from author to user to match your model
     });
+
     await comment.save();
+
+    // Push the new comment reference to the post and user
     post.comments.push(comment._id);
     await post.save();
     await User.findByIdAndUpdate(userId, { $push: { comments: comment._id } });
+
+    // Populate the user field before returning the comment
+    await comment.populate("user", "name email profilePicture");
+
     res.status(201).json(comment);
   } catch (error) {
     next(error);

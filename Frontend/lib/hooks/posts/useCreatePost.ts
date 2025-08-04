@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Post } from "@/types";
 import axiosInstance from "@/lib/axios";
-interface CreatePostRequest {
+export interface CreatePostRequest {
   title: string;
   content: string;
   excerpt?: string;

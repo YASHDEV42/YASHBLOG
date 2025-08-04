@@ -7,23 +7,21 @@ import TitleExcerptForm from "./TitleExcerptForm";
 import PostPreview from "./PostPreview";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { usePosts } from "@/lib/hooks/use-posts";
-import { useAuth } from "@/lib/hooks/use-auth";
-type PostData = {
-  title: string;
-  excerpt: string;
-  content: string;
-};
+import { useAuth } from "@/lib/hooks/auth/useAuth";
+import { useCreatePost } from "@/lib/hooks/posts/useCreatePost";
+import { CreatePostRequest } from "@/lib/hooks/posts/useCreatePost";
 
 const BlogPostEditor = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState(1);
-  const [postData, setPostData] = useState<PostData>({
+  const [postData, setPostData] = useState<CreatePostRequest>({
     title: "",
     excerpt: "",
     content: "",
+    categories: [],
+    published: false,
   });
-  const { createPost } = usePosts();
+  const { mutate: createPost } = useCreatePost();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -47,31 +45,34 @@ const BlogPostEditor = () => {
 
     setLoading(true);
 
-    try {
-      // Create the post data that matches the API expectation
-      const data = {
+    createPost(
+      {
         title: postData.title,
         excerpt: postData.excerpt,
         content: postData.content,
-        published: true, // You can make this configurable
-      };
-
-      const result = await createPost(data);
-
-      if (result.success) {
-        toast.success("Post created successfully");
-        setPostData({ title: "", excerpt: "", content: "" });
-        setStep(1);
-        router.push("/profile");
-      } else {
-        toast.error(result.message || "Error creating post");
+        published: true,
+      },
+      {
+        onSuccess: () => {
+          toast.success("✅ Post created successfully!");
+          setPostData({
+            title: "",
+            excerpt: "",
+            content: "",
+            categories: [],
+            published: false,
+          });
+          setStep(1);
+          router.push("/profile");
+        },
+        onError: () => {
+          toast.error("❌ Failed to create post");
+        },
+        onSettled: () => {
+          setLoading(false);
+        },
       }
-    } catch (error) {
-      console.error("Error creating post:", error);
-      toast.error("An unexpected error occurred");
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   return (

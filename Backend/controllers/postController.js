@@ -144,7 +144,7 @@ const deletePost = async (req, res, next) => {
   }
 };
 
-const togglepublished = async (req, res, next) => {
+const togglePublished = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
@@ -164,7 +164,7 @@ const toggleLike = async (req, res, next) => {
   try {
     const { slug } = req.params;
     const userId = req.userId;
-
+    const user = await User.findById(userId);
     const post = await Post.findOne({ slug });
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -172,11 +172,16 @@ const toggleLike = async (req, res, next) => {
     const isLiked = post.likes.includes(userId);
     if (isLiked) {
       post.likes.pull(userId);
+      post.metadata.likes -= 1;
+      user.likedPosts.pull(post._id);
     } else {
       post.likes.push(userId);
+      post.metadata.likes += 1;
+      user.likedPosts.push(post._id);
     }
     await post.save();
-    res.status(200).json({ message: "Post like status updated", post });
+    await user.save();
+    res.status(200).json({ post });
   } catch (err) {
     next(err);
   }
@@ -218,7 +223,7 @@ module.exports = {
   getAllPosts,
   updatePost,
   deletePost,
-  togglepublished,
+  togglePublished,
   toggleLike,
   getPostByAuthor,
 };

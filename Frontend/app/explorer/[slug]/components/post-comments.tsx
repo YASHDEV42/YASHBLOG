@@ -1,46 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { User } from "@prisma/client";
-import { CommentsWithUser } from "../page";
-import { createComment } from "@/actions/Posts";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/hooks/auth/useAuth";
+import { useCreateComment } from "@/lib/hooks/comments/useCreateComment";
+import { Comment } from "@/types";
 
-export function Comments({
-  postId,
-  initialComments,
-  currentUser,
-}: {
+interface CommentsProps {
   postId: string;
-  initialComments: CommentsWithUser[];
-  currentUser: User;
-}) {
-  const [comments, setComments] = useState<CommentsWithUser[]>(initialComments);
+  initialComments?: Comment[];
+}
+
+export function Comments({ postId, initialComments = [] }: CommentsProps) {
+  const { user: currentUser } = useAuth();
+  const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { mutateAsync: createComment } = useCreateComment();
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
+    if (!currentUser) {
+      toast.error("Please log in to comment");
+      return;
+    }
 
     setIsSubmitting(true);
-
-    const comment = {
+    const commentPayload = {
       content: newComment,
-      userId: currentUser.id,
-      postId: postId,
+      postId,
+      userId: currentUser._id,
     };
-
+    console.log("Creating comment with payload:", commentPayload);
     try {
-      const createdComment: CommentsWithUser | null = await createComment(
-        comment
-      );
-      setComments((prev) => [...prev, createdComment as CommentsWithUser]);
-      console.log("This is the created comment:", createdComment);
+      const createdComment = await createComment(commentPayload);
+      setComments((prev) => [...prev, createdComment]);
+      console.log("Created comment:", createdComment);
     } catch (error) {
       console.error("Error creating comment:", error);
+      toast.error("Error creating comment");
     } finally {
       setNewComment("");
       setIsSubmitting(false);
@@ -53,13 +56,15 @@ export function Comments({
 
       <div className="space-y-4 mb-4">
         {comments.map((comment) => (
-          <div key={comment.id} className="flex space-x-4">
+          <div key={comment._id} className="flex space-x-4">
             <Avatar>
               <AvatarImage
-                src={undefined}
-                alt={comment.user.name || undefined}
+                src={comment.user.profilePicture || ""}
+                alt={comment.user.name || "User"}
               />
-              <AvatarFallback>{comment.user.name?.charAt(0)}</AvatarFallback>
+              <AvatarFallback>
+                {comment.user.name?.charAt(0) || "A"}
+              </AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold">{comment.user.name}</p>

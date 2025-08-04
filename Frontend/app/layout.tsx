@@ -5,6 +5,7 @@ import Theme from "@/components/Theme";
 import { Toaster } from "sonner";
 
 import ProviderComponent from "@/components/ProviderComponent";
+import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -121,13 +122,17 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased ">
         <ProviderComponent>
-          <Theme>
-            <Navbar />
-            <main id="main-content">{children}</main>
-            <Toaster />
-          </Theme>
+          <AuthProvider>
+            <Theme>
+              <Navbar />
+              <main id="main-content" className="min-h-screen w-full">
+                {children}
+              </main>
+              <Toaster />
+            </Theme>
+          </AuthProvider>
         </ProviderComponent>
       </body>
     </html>

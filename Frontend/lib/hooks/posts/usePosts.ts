@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
-import { Post } from "@/types";
+import { CompletePost } from "@/types";
 
-const fetchPosts = async (): Promise<Post[]> => {
+const fetchPosts = async (): Promise<CompletePost[]> => {
   const { data } = await axiosInstance.get("/post");
   return data.posts || [];
 };

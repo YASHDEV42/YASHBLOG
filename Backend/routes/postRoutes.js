@@ -6,7 +6,7 @@ const {
   getAllPosts,
   updatePost,
   deletePost,
-  togglepublished,
+  togglePublished,
   toggleLike,
   getPostByAuthor,
 } = require("../controllers/postController.js");
@@ -17,7 +17,7 @@ router.get("/:slug", auth, getPost);
 router.get("/", auth, getAllPosts);
 router.put("/:slug", auth, updatePost);
 router.delete("/:slug", auth, deletePost);
-router.put("/:slug/publish", auth, togglepublished);
+router.put("/:slug/publish", auth, togglePublished);
 router.put("/:slug/like", auth, toggleLike);
 router.get("/author", auth, getPostByAuthor);
 

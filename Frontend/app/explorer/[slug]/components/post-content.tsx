@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Heart, Calendar, Loader, Share2 } from "lucide-react";
+import { Eye, Calendar, Share2, Heart } from "lucide-react";
 import { Comments } from "./post-comments";
 import { toast } from "sonner";
 import { usePost } from "@/lib/hooks/posts/usePost";
@@ -15,21 +15,45 @@ export function PostContent({ slug }: { slug: string }) {
   //hooks
   const { data: post, isLoading, error } = usePost(slug);
   const { user } = useAuth();
-  const toggleLikeMutation = useToggleLike();
-  //states
-  const [localLikes, setLocalLikes] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeLoading, setLikeLoading] = useState(false);
+  const { mutate: toggleLike } = useToggleLike();
 
-  // Set initial likes and liked state based on post data
+  //local state
+  const [localLikes, setLocalLikes] = useState<number>(0);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [loadingLike, setLoadingLike] = useState<boolean>(false);
+  console.log("liked:", isLiked);
   useEffect(() => {
-    if (post) {
-      setLocalLikes(post.metadata.likes || 0);
-      if (user && post.likes) {
-        setIsLiked(post.likes.includes(user._id));
-      }
+    if (post && user) {
+      setLocalLikes(post.metadata?.likes || 0);
+      post.likes.map((like) => {
+        if (like._id === user._id) {
+          setIsLiked(true);
+        }
+      });
+    } else if (post) {
+      setLocalLikes(post.metadata?.likes || 0);
+      setIsLiked(false);
     }
   }, [post, user]);
+  const handleLike = () => {
+    if (!user) {
+      toast.error("You must be logged in to like a post");
+      return;
+    }
+
+    setLoadingLike(true);
+    try {
+      toggleLike(slug);
+      setIsLiked((prev) => !prev);
+      setLocalLikes((prev) => (isLiked ? prev - 1 : prev + 1));
+      toast.success(isLiked ? "Post unliked!" : "Post liked!");
+    } catch (error) {
+      console.error("Error liking post:", error);
+      toast.error("Failed to like post");
+    } finally {
+      setLoadingLike(false);
+    }
+  };
 
   // Function to handle sharing the post
   const handleShare = async () => {
@@ -41,7 +65,7 @@ export function PostContent({ slug }: { slug: string }) {
           text: post?.excerpt,
           url: url,
         });
-        toast.success("sharing post!");
+        toast.success("Post shared!");
       } catch (error) {
         console.error("Error sharing:", error);
         toast.error("Failed to share the post");
@@ -57,68 +81,7 @@ export function PostContent({ slug }: { slug: string }) {
         });
     }
   };
-  // Function to handle liking the post
-  const handleLike = async () => {
-    if (!user || !post) {
-      toast.error("Please log in to like posts");
-      return;
-    }
-    setLikeLoading(true);
-    try {
-      setLocalLikes((prev) => prev + 1);
-      setIsLiked(true);
 
-      const updatedPost = await toggleLikeMutation.mutateAsync(post.slug);
-      if (updatedPost) {
-        toast.success("Post liked successfully!");
-      } else {
-        setLocalLikes((prev) => prev - 1);
-        setIsLiked(false);
-        toast.error("Failed to like the post");
-      }
-    } catch (error) {
-      console.error("Error liking the post:", error);
-      toast.error("Failed to like the post");
-      setLocalLikes((prev) => prev - 1);
-      setIsLiked(false);
-    } finally {
-      setLikeLoading(false);
-    }
-  };
-
-  // Function to handle unLiking the post
-  const handleUnLike = async () => {
-    if (!user || !post) {
-      toast.error("Please log in to interact with posts");
-      return;
-    }
-
-    setLikeLoading(true);
-    try {
-      // Optimistic update
-      setLocalLikes((prev) => prev - 1);
-      setIsLiked(false);
-
-      const updatedPost = await toggleLikeMutation.mutateAsync(post.slug);
-      if (updatedPost) {
-        toast.success("Post unLiked successfully!");
-      } else {
-        // Revert on failure
-        setLocalLikes((prev) => prev + 1);
-        setIsLiked(true);
-        toast.error("Failed to unlike the post");
-      }
-    } catch (error) {
-      console.error("Error unLiking the post:", error);
-      toast.error("Failed to unlike the post");
-      // Revert on error
-      setLocalLikes((prev) => prev + 1);
-      setIsLiked(true);
-    } finally {
-      setLikeLoading(false);
-    }
-  };
-  // Function to format date
   const formatDate = (dateString: string | Date) => {
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -127,6 +90,7 @@ export function PostContent({ slug }: { slug: string }) {
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
+
   // Show loading state
   if (isLoading) {
     return (
@@ -181,66 +145,43 @@ export function PostContent({ slug }: { slug: string }) {
             </div>
             <div className="flex items-center">
               <Eye className="w-4 h-4 mr-1" />
-              <span>{post.metadata.views || 0} views</span>
+              <span>{post.metadata?.views || 0} views</span>
             </div>
             <div className="flex items-center space-x-2">
+              {/* Static Like Button UI */}
               {isLiked ? (
                 <Button
-                  variant="default"
+                  variant="outline"
                   size="sm"
-                  className={`flex items-center ${
-                    likeLoading ? "cursor-not-allowed" : "cursor-pointer"
-                  }`}
-                  disabled={likeLoading}
-                  onClick={handleUnLike}
+                  className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors duration-200 shadow-none border-0 bg-background hover:bg-background cursor-pointer"
+                  onClick={handleLike}
+                  disabled={loadingLike}
                 >
-                  <Heart className="w-4 h-4 mr-1 fill-red-500 text-red-500" />
-                  <span className="hidden sm:inline">
-                    {likeLoading ? (
-                      <Loader className="animate-spin inline" />
-                    ) : (
-                      localLikes
-                    )}{" "}
-                    likes
-                  </span>
-                  <span className="sm:hidden">{localLikes}</span>
+                  <Heart className="w-4 h-4" />
+                  <span>{localLikes}</span>
                 </Button>
               ) : (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className={`flex items-center ${
-                    likeLoading ? "cursor-not-allowed" : "cursor-pointer"
-                  }`}
-                  disabled={likeLoading}
+                  className="flex items-center gap-1 text-gray-500 transition-colors duration-200 shadow-none border-0 bg-background hover:bg-background cursor-pointer hover:text-red-600"
                   onClick={handleLike}
+                  disabled={loadingLike}
                 >
-                  <Heart
-                    className={`w-4 h-4 mr-1 ${
-                      localLikes > 0
-                        ? "fill-red-500 text-red-500"
-                        : "text-gray-500"
-                    }`}
-                  />
-                  <span className="hidden sm:inline">
-                    {likeLoading ? (
-                      <Loader className="animate-spin inline" />
-                    ) : (
-                      localLikes
-                    )}{" "}
-                    likes
-                  </span>
-                  <span className="sm:hidden">{localLikes}</span>
+                  <Heart className="w-4 h-4" />
+                  <span>{localLikes}</span>
                 </Button>
               )}
+
+              {/* Share Button remains active */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center"
+                className="flex items-center gap-1 text-gray-500 hover:text-blue-500 transition-colors duration-200"
                 onClick={handleShare}
               >
-                <Share2 className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">Share</span>
+                <Share2 className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs">Share</span>
               </Button>
             </div>
           </div>
@@ -249,25 +190,38 @@ export function PostContent({ slug }: { slug: string }) {
           <div className="flex items-center space-x-2 mb-4">
             <Avatar>
               <AvatarImage
-                src={post?.author?.profilePicture || "Unknown Author"}
+                src={
+                  typeof post.author === "object"
+                    ? post.author?.profilePicture || ""
+                    : ""
+                }
+                alt={
+                  typeof post.author === "object"
+                    ? post.author?.name || "Unknown Author"
+                    : "Unknown Author"
+                }
               />
               <AvatarFallback>
-                {post.author.name.charAt(0) || "A"}
+                {typeof post.author === "object"
+                  ? post.author?.name?.charAt(0) || "A"
+                  : "A"}
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold">
-                {post.author?.name || "Anonymous"}
+                {typeof post.author === "object"
+                  ? post.author?.name || "Anonymous"
+                  : "Anonymous"}
               </p>
             </div>
           </div>
           <div
-            className="editor max-w-none  text-background-foreground"
+            className="editor max-w-none text-foreground prose prose-lg dark:prose-invert"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </CardContent>
       </Card>
-      {user && (
+      {user && user._id && (
         <Comments
           postId={post._id}
           initialComments={post.comments || []}

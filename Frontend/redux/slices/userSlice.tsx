@@ -6,7 +6,7 @@ type UserState = {
   user: User | null;
   loading: boolean;
   error: string | null;
-  initialized: boolean; // Track if user data has been loaded
+  initialized: boolean;
 };
 
 const initialState: UserState = {

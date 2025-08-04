@@ -48,7 +48,7 @@ const register = async (req, res, next) => {
 
     const token = createTokenAndSetCookie(res, newUser._id);
 
-    res.status(201).json({ user: newUser });
+    res.status(201).json({ user: newUser, token });
   } catch (error) {
     next(error);
   }
@@ -75,6 +75,7 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid password!" });
     }
     const token = createTokenAndSetCookie(res, user._id);
+
     res.status(200).json({ user });
   } catch (error) {
     next(error);

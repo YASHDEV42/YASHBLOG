@@ -2,26 +2,20 @@
 
 import React from "react";
 import BlogPostEditor from "./components/BlogPostEditor";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "@/lib/hooks/auth/useAuth";
 import Spinner from "@/components/Spinner";
 
 const Page = () => {
-  const { user, loading, initialized, isAuthenticated } = useAuth();
-
-  // Show loading spinner while auth state is being initialized
-  if (!initialized || loading) {
-    return (
-      <div className="w-full flex justify-center items-center min-h-[200px]">
-        <Spinner />
-      </div>
-    );
+  const { user: currentUser, loading: authLoading } = useAuth();
+  if (authLoading) {
+    return <Spinner />;
   }
-
-  // Show login message if user is not authenticated
-  if (!isAuthenticated || !user) {
+  if (!currentUser) {
     return (
-      <div className="w-full flex flex-col items-center justify-center mx-auto p-4">
-        <p className="text-center text-lg">Please log in to create a post.</p>
+      <div className="w-full flex items-center justify-center h-screen">
+        <h1 className="text-2xl font-bold">
+          You must be logged in to create a post.
+        </h1>
       </div>
     );
   }

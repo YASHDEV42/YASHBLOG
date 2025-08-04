@@ -54,7 +54,6 @@ export function useAuth() {
     initialized,
     error,
     isAuthenticated: !!user,
-
     login,
     register,
     logout,

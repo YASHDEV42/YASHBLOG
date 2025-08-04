@@ -1,19 +1,22 @@
 "use client";
 import Spinner from "@/components/Spinner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RootState } from "@/redux/store";
+import { useAuth } from "@/lib/hooks/auth/useAuth";
 import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 export default function ProfileHeader() {
-  const { user: currentUser, loading: authLoading } = useSelector(
-    (state: RootState) => state.user
-  );
   const router = useRouter();
-  if (!currentUser && !authLoading) {
-    router.replace("/login");
-    return;
-  }
+  // Get the current user from Redux store
+  const { user: currentUser, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    // Redirect to login if user is not authenticated
+    if (!currentUser && !authLoading) {
+      router.push("/login");
+    }
+  }, [currentUser, authLoading, router]);
+
   if (authLoading || !currentUser) {
     return (
       <div className="w-full flex justify-center items-center min-h-[200px]">

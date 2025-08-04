@@ -11,9 +11,8 @@ const {
 } = require("../controllers/commentController.js");
 const auth = require("../middleware/auth.js");
 router.post("/", auth, createComment);
-router.get("/post/:postId", auth, getCommentsByPost);
+router.get("/:postId", auth, getCommentsByPost);
 router.delete("/:id", auth, deleteComment);
-
 router.put("/:id", auth, updateComment);
 router.get("/:id", auth, getCommentById);
 router.get("/user/:userId", auth, getCommentsByUser);

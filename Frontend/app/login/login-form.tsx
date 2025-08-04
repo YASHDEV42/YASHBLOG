@@ -12,10 +12,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/hooks/auth/useAuth";
 import { useToast } from "@/lib/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert"; // Add this import
+import axios from "axios";
 
 export function LoginForm({
   className,
@@ -29,37 +31,53 @@ export function LoginForm({
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>(""); // Add local error state
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(""); // Clear error when user types
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(""); // Clear previous errors
 
     try {
       const result = await login(formData.email, formData.password);
 
       if (result?.user) {
         toast({
-          title: "Success",
+          title: "Success! 🎉",
           description: result.message || "Login successful",
         });
         router.push("/");
       } else {
+        // Handle login failure
+        const errorMessage = result?.message || "Invalid email or password";
+        setError(errorMessage);
         toast({
-          title: "Error",
-          description: result.message || "Login failed",
+          title: "Login Failed",
+          description: errorMessage,
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error("Login error:", error);
+    } catch (error: unknown) {
+      let errorMessage = "An unexpected error occurred";
+
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -72,13 +90,21 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>
-            Login with your Apple or Google account
-          </CardDescription>
+          <CardDescription>Login with your email and password</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
+              {/* Display error alert */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-red-400">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -88,8 +114,10 @@ export function LoginForm({
                   required
                   onChange={handleChange}
                   value={formData.email}
+                  placeholder="Enter your email"
                 />
               </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -99,18 +127,21 @@ export function LoginForm({
                   required
                   onChange={handleChange}
                   value={formData.password}
+                  placeholder="Enter your password"
                 />
               </div>
 
-              {isLoading ? (
-                <Button className="w-full opacity-50" type="submit" disabled>
-                  Login <Loader2 className="inline animate-spin" />
-                </Button>
-              ) : (
-                <Button className="w-full" type="submit">
-                  Login
-                </Button>
-              )}
+              <Button className="w-full" type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
+              </Button>
+
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
                 <Link href="/signup" className="underline underline-offset-4">
