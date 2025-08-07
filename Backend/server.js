@@ -51,8 +51,31 @@ if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
 
-// Security headers
-app.use(securityHeaders);
+// Security headers - with error handling
+try {
+  if (securityHeaders && typeof securityHeaders === "function") {
+    app.use(securityHeaders);
+  } else {
+    console.warn(
+      "⚠️ securityHeaders middleware not available, using basic security headers"
+    );
+    app.use((req, res, next) => {
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("X-Frame-Options", "DENY");
+      res.setHeader("X-XSS-Protection", "1; mode=block");
+      next();
+    });
+  }
+} catch (error) {
+  console.error("❌ Error loading security middleware:", error.message);
+  // Fallback security headers
+  app.use((req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-XSS-Protection", "1; mode=block");
+    next();
+  });
+}
 
 // CORS configuration
 app.use(cors(corsOptions));
@@ -62,8 +85,18 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// General rate limiting for all API routes
-app.use("/api", apiLimiter);
+// General rate limiting for all API routes - with error handling
+try {
+  if (apiLimiter && typeof apiLimiter === "function") {
+    app.use("/api", apiLimiter);
+  } else {
+    console.warn(
+      "⚠️ apiLimiter middleware not available, skipping rate limiting"
+    );
+  }
+} catch (error) {
+  console.error("❌ Error loading rate limiter:", error.message);
+}
 
 // Health check endpoint (before rate limiting)
 app.get("/health", (req, res) => {
