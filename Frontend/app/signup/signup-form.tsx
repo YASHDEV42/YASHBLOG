@@ -15,6 +15,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/hooks/auth/useAuth";
 import { useToast } from "@/lib/hooks/use-toast";
+import axios from "axios";
 
 export function SignupForm({
   className,
@@ -66,9 +67,95 @@ export function SignupForm({
           variant: "destructive",
         });
       }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An error occurred";
+    } catch (err: unknown) {
+      // Extract error message from axios error response
+      console.log("Registration error:", err);
+      let errorMessage = "An error occurred during registration";
+
+      // Check if it's an AxiosError using axios utility
+      if (axios.isAxiosError(err)) {
+        const responseData = err.response?.data;
+
+        // Handle rate limiting error (429)
+        if (err.response?.status === 429 && responseData) {
+          if (responseData.error && responseData.retryAfter) {
+            errorMessage = `${responseData.error}. Please try again in ${responseData.retryAfter}.`;
+          } else if (responseData.message) {
+            errorMessage = responseData.message;
+          } else if (responseData.error) {
+            errorMessage = responseData.error;
+          }
+        }
+        // Handle other errors
+        else if (responseData?.message) {
+          errorMessage = responseData.message;
+        } else if (responseData?.error) {
+          errorMessage = responseData.error;
+        } else {
+          errorMessage = err.message || errorMessage;
+        }
+      }
+      // Check if it's a TanStack Query error that wraps an AxiosError
+      else if (
+        err instanceof Error &&
+        "cause" in err &&
+        axios.isAxiosError(err.cause)
+      ) {
+        const axiosError = err.cause;
+        const responseData = axiosError.response?.data;
+
+        // Handle rate limiting error (429)
+        if (axiosError.response?.status === 429 && responseData) {
+          if (responseData.error && responseData.retryAfter) {
+            errorMessage = `${responseData.error}. Please try again in ${responseData.retryAfter}.`;
+          } else if (responseData.message) {
+            errorMessage = responseData.message;
+          } else if (responseData.error) {
+            errorMessage = responseData.error;
+          }
+        }
+        // Handle other errors
+        else if (responseData?.message) {
+          errorMessage = responseData.message;
+        } else if (responseData?.error) {
+          errorMessage = responseData.error;
+        } else {
+          errorMessage = axiosError.message || errorMessage;
+        }
+      }
+      // Check if the error has a nested response property
+      else if (typeof err === "object" && err !== null && "response" in err) {
+        const errorWithResponse = err as {
+          response?: {
+            data?: { message?: string; error?: string; retryAfter?: string };
+            statusText?: string;
+            status?: number;
+          };
+        };
+        const response = errorWithResponse.response;
+
+        if (response?.status === 429 && response.data) {
+          if (response.data.error && response.data.retryAfter) {
+            errorMessage = `${response.data.error}. Please try again in ${response.data.retryAfter}.`;
+          } else if (response.data.message) {
+            errorMessage = response.data.message;
+          } else if (response.data.error) {
+            errorMessage = response.data.error;
+          }
+        } else if (response && response.data && response.data.message) {
+          errorMessage = response.data.message;
+        } else if (response && response.data && response.data.error) {
+          errorMessage = response.data.error;
+        } else if (response && response.statusText) {
+          errorMessage = response.statusText;
+        }
+      }
+      // Check if it's a plain Error
+      else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      console.log("Final error message:", errorMessage);
       setError(errorMessage);
       toast({
         title: "Error",

@@ -47,7 +47,7 @@ const getCommentsByPost = async (req, res, next) => {
     const { postId } = req.params;
 
     const comments = await Comment.find({ post: postId })
-      .populate("author", "name email")
+      .populate("author", "name email profilePicture")
       .sort({ createdAt: -1 });
     if (!comments) {
       return res
@@ -121,7 +121,7 @@ const getCommentById = async (req, res, next) => {
     const { commentId } = req.params;
 
     const comment = await Comment.findById(commentId)
-      .populate("author", "name email")
+      .populate("author", "name email profilePicture")
       .populate("post", "title slug");
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });

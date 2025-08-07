@@ -1,15 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Calendar, Share2, Heart } from "lucide-react";
+import { Calendar, Share2, Heart } from "lucide-react";
 import { Comments } from "./post-comments";
 import { toast } from "sonner";
 import { usePost } from "@/lib/hooks/posts/usePost";
 import { useAuth } from "@/lib/hooks/auth/useAuth";
 import Spinner from "@/components/Spinner";
 import { useToggleLike } from "@/lib/hooks/posts/useToggleLike";
+import { PostViewsDisplay } from "@/components/PostViewsDisplay";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export function PostContent({ slug }: { slug: string }) {
   //hooks
@@ -25,11 +26,8 @@ export function PostContent({ slug }: { slug: string }) {
   useEffect(() => {
     if (post && user) {
       setLocalLikes(post.metadata?.likes || 0);
-      post.likes.map((like) => {
-        if (like._id === user._id) {
-          setIsLiked(true);
-        }
-      });
+      // likes array contains User objects in PopulatedPost
+      setIsLiked(post.likes.some((like) => like._id === user._id));
     } else if (post) {
       setLocalLikes(post.metadata?.likes || 0);
       setIsLiked(false);
@@ -42,17 +40,35 @@ export function PostContent({ slug }: { slug: string }) {
     }
 
     setLoadingLike(true);
-    try {
-      toggleLike(slug);
-      setIsLiked((prev) => !prev);
-      setLocalLikes((prev) => (isLiked ? prev - 1 : prev + 1));
-      toast.success(isLiked ? "Post unliked!" : "Post liked!");
-    } catch (error) {
-      console.error("Error liking post:", error);
-      toast.error("Failed to like post");
-    } finally {
-      setLoadingLike(false);
-    }
+
+    // Optimistic update
+    const wasLiked = isLiked;
+    setIsLiked(!wasLiked);
+    setLocalLikes((prev) => (wasLiked ? prev - 1 : prev + 1));
+
+    toggleLike(slug, {
+      onSuccess: (updatedPost) => {
+        // Update local state with backend values
+        setLocalLikes(updatedPost.metadata.likes);
+        setIsLiked(updatedPost.likes.includes(user._id));
+
+        const action = updatedPost.likes.includes(user._id)
+          ? "liked"
+          : "unliked";
+        toast.success(`Post ${action}!`);
+      },
+      onError: (error) => {
+        // Revert optimistic update
+        setIsLiked(wasLiked);
+        setLocalLikes((prev) => (wasLiked ? prev + 1 : prev - 1));
+
+        console.error("Error liking post:", error);
+        toast.error("Failed to like post");
+      },
+      onSettled: () => {
+        setLoadingLike(false);
+      },
+    });
   };
 
   // Function to handle sharing the post
@@ -129,6 +145,10 @@ export function PostContent({ slug }: { slug: string }) {
     );
   }
 
+  // Debug logging
+  console.log("Post author data:", post.author);
+  console.log("Profile picture:", post.author?.profilePicture);
+
   return (
     <>
       <Card className="w-full max-w-[90vw] md:max-w-[80vw] mx-auto mt-10">
@@ -143,10 +163,7 @@ export function PostContent({ slug }: { slug: string }) {
                 {formatDate(post.createdAt)}
               </time>
             </div>
-            <div className="flex items-center">
-              <Eye className="w-4 h-4 mr-1" />
-              <span>{post.metadata?.views || 0} views</span>
-            </div>
+            <PostViewsDisplay views={post.metadata?.views} />
             <div className="flex items-center space-x-2">
               {/* Static Like Button UI */}
               {isLiked ? (
@@ -177,7 +194,7 @@ export function PostContent({ slug }: { slug: string }) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center gap-1 text-gray-500 hover:text-blue-500 transition-colors duration-200"
+                className="flex items-center gap-1 text-gray-500 transition-colors duration-200 cursor-pointer"
                 onClick={handleShare}
               >
                 <Share2 className="w-4 h-4" />
@@ -188,30 +205,16 @@ export function PostContent({ slug }: { slug: string }) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-2 mb-4">
-            <Avatar>
-              <AvatarImage
-                src={
-                  typeof post.author === "object"
-                    ? post.author?.profilePicture || ""
-                    : ""
-                }
-                alt={
-                  typeof post.author === "object"
-                    ? post.author?.name || "Unknown Author"
-                    : "Unknown Author"
-                }
-              />
-              <AvatarFallback>
-                {typeof post.author === "object"
-                  ? post.author?.name?.charAt(0) || "A"
-                  : "A"}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              user={{
+                name: post.author?.name || "Anonymous",
+                profilePicture: post.author?.profilePicture,
+              }}
+              size="lg"
+            />
             <div>
               <p className="font-semibold">
-                {typeof post.author === "object"
-                  ? post.author?.name || "Anonymous"
-                  : "Anonymous"}
+                {post.author?.name || "Anonymous"}
               </p>
             </div>
           </div>
@@ -221,17 +224,7 @@ export function PostContent({ slug }: { slug: string }) {
           />
         </CardContent>
       </Card>
-      {user && user._id && (
-        <Comments
-          postId={post._id}
-          initialComments={post.comments || []}
-          currentUser={{
-            name: user.name || null,
-            id: user._id,
-            email: user.email,
-          }}
-        />
-      )}
+      {user && user._id && <Comments postId={post._id} />}
     </>
   );
 }

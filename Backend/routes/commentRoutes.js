@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { createLimiter } = require("../middleware/security.js");
 const {
   createComment,
   getCommentsByPost,
@@ -10,12 +11,18 @@ const {
   replayComment,
 } = require("../controllers/commentController.js");
 const auth = require("../middleware/auth.js");
-router.post("/", auth, createComment);
+
+// Comment creation with rate limiting
+router.post("/", auth, createLimiter, createComment);
+router.post("/reply/:commentId", auth, createLimiter, replayComment);
+
+// Reading operations
 router.get("/:postId", auth, getCommentsByPost);
-router.delete("/:id", auth, deleteComment);
-router.put("/:id", auth, updateComment);
 router.get("/:id", auth, getCommentById);
 router.get("/user/:userId", auth, getCommentsByUser);
-router.post("/reply/:commentId", auth, replayComment);
+
+// Modification operations
+router.delete("/:id", auth, deleteComment);
+router.put("/:id", auth, updateComment);
 
 module.exports = router;

@@ -1,33 +1,54 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
 const slugify = require("slugify");
+const InputValidator = require("../middleware/inputValidator.js");
+
 const createPost = async (req, res, next) => {
   try {
     const { title, content, excerpt, categories } = req.body;
-    if (!title || !content) {
-      return res
-        .status(400)
-        .json({ message: "Title and content are required" });
-    }
+
     if (!req.userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    // Validate title
+    const titleValidation = InputValidator.validateTitle(title);
+    if (!titleValidation.isValid) {
+      return res.status(400).json({ message: titleValidation.message });
+    }
+
+    // Validate content
+    const contentValidation = InputValidator.validateContent(content);
+    if (!contentValidation.isValid) {
+      return res.status(400).json({ message: contentValidation.message });
+    }
+
+    // Validate categories
+    const categoriesValidation = InputValidator.validateCategories(categories);
+    if (!categoriesValidation.isValid) {
+      return res.status(400).json({ message: categoriesValidation.message });
+    }
+
     const author = req.userId;
-    const slug = slugify(title, { lower: true, strict: true });
+    const slug = slugify(titleValidation.sanitized, {
+      lower: true,
+      strict: true,
+    });
 
     const existingPost = await Post.findOne({ slug });
     if (existingPost) {
-      return res.status(400).json({ message: "The title is already used!" });
+      return res
+        .status(400)
+        .json({ message: "A post with this title already exists!" });
     }
 
     const post = new Post({
-      title,
-      content,
-      excerpt,
+      title: titleValidation.sanitized,
+      content: contentValidation.sanitized,
+      excerpt: excerpt ? excerpt.trim() : "",
       slug,
       author,
-      categories,
+      categories: categoriesValidation.sanitized,
     });
     const savedPost = await post.save();
 
@@ -44,7 +65,7 @@ const getPost = async (req, res, next) => {
     const { slug } = req.params;
 
     const post = await Post.findOne({ slug })
-      .populate("author", "name email")
+      .populate("author", "name email profilePicture")
       .populate({
         path: "comments",
         populate: { path: "user", select: "name email" },
@@ -73,7 +94,7 @@ const getAllPosts = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("author", "name email")
+      .populate("author", "name email profilePicture")
       .populate({
         path: "comments",
         populate: { path: "user", select: "name email" },
@@ -199,7 +220,7 @@ const getPostByAuthor = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("author", "name email")
+      .populate("author", "name email profilePicture")
       .populate({
         path: "comments",
         populate: { path: "user", select: "name email" },

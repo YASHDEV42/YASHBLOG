@@ -63,6 +63,14 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Database Indexes for Performance
+// Note: email index is created by unique: true in schema
+userSchema.index({ name: 1 }); // Search by name
+userSchema.index({ createdAt: -1 }); // Latest users
+userSchema.index({ "followers.length": -1 }); // Popular users
+userSchema.index({ "posts.length": -1 }); // Most active authors
+
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);

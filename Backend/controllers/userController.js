@@ -1,52 +1,59 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
+const InputValidator = require("../middleware/inputValidator.js");
 
-const createTokenAndSetCookie = (res, userId) => {
+const createTokens = (res, userId) => {
   const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
+    expiresIn: "7d", // 7 days for simplicity
   });
 
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "Strict",
-    maxAge: 60 * 60 * 1000, // 1 hour
+    sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
   return token;
 };
+
 const register = async (req, res, next) => {
   const { email, name, password } = req.body;
-  if (!email || !name || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+
+  // Validate email
+  const emailValidation = InputValidator.validateEmail(email);
+  if (!emailValidation.isValid) {
+    return res.status(400).json({ message: emailValidation.message });
   }
-  if (!/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(email)) {
-    return res.status(400).json({ message: "Invalid email format" });
+
+  // Validate name
+  const nameValidation = InputValidator.validateName(name);
+  if (!nameValidation.isValid) {
+    return res.status(400).json({ message: nameValidation.message });
   }
-  if (password.length < 6) {
-    return res
-      .status(400)
-      .json({ message: "Password must be at least 6 characters long" });
+
+  // Validate password
+  const passwordValidation = InputValidator.validatePassword(password);
+  if (!passwordValidation.isValid) {
+    return res.status(400).json({ message: passwordValidation.message });
   }
-  if (!/^[a-zA-Z0-9]+$/.test(name)) {
-    return res
-      .status(400)
-      .json({ message: "Name can only contain alphanumeric characters" });
-  }
-  if (name.length < 3 || name.length > 20) {
-    return res
-      .status(400)
-      .json({ message: "Name must be between 3 and 20 characters long" });
-  }
+
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      email: emailValidation.sanitized,
+    });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
-    const newUser = new User({ email, name, password });
+
+    const newUser = new User({
+      email: emailValidation.sanitized,
+      name: nameValidation.sanitized,
+      password: passwordValidation.sanitized,
+    });
     await newUser.save();
 
-    const token = createTokenAndSetCookie(res, newUser._id);
+    const token = createTokens(res, newUser._id);
 
     res.status(201).json({ user: newUser, token });
   } catch (error) {
@@ -55,26 +62,29 @@ const register = async (req, res, next) => {
 };
 const login = async (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
+
+  // Validate email
+  const emailValidation = InputValidator.validateEmail(email);
+  if (!emailValidation.isValid) {
+    return res.status(400).json({ message: emailValidation.message });
   }
-  if (!/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(email)) {
-    return res.status(400).json({ message: "Invalid email format" });
-  }
-  if (password.length < 6) {
-    return res.status(400).json({ message: "The password is too short!" });
+
+  if (!password || typeof password !== "string") {
+    return res.status(400).json({ message: "Password is required" });
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: emailValidation.sanitized });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid password!" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
-    const token = createTokenAndSetCookie(res, user._id);
+
+    const token = createTokens(res, user._id);
 
     res.status(200).json({ user });
   } catch (error) {
@@ -103,21 +113,56 @@ const getUserProfile = async (req, res, next) => {
 const updateUserProfile = async (req, res, next) => {
   const userId = req.params.id;
   const { name, bio, profilePicture } = req.body;
+
+  // Validate name if provided
+  if (name !== undefined) {
+    const nameValidation = InputValidator.validateName(name);
+    if (!nameValidation.isValid) {
+      return res.status(400).json({ message: nameValidation.message });
+    }
+  }
+
+  // Validate bio if provided
+  if (bio !== undefined) {
+    const bioValidation = InputValidator.validateContent(bio);
+    if (!bioValidation.isValid) {
+      return res.status(400).json({ message: bioValidation.message });
+    }
+  }
+
+  // Validate profile picture URL if provided
+  if (profilePicture !== undefined) {
+    const profilePictureValidation =
+      InputValidator.validateProfilePictureUrl(profilePicture);
+    if (!profilePictureValidation.isValid) {
+      return res
+        .status(400)
+        .json({ message: profilePictureValidation.message });
+    }
+  }
+
   try {
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { name, bio, profilePicture },
-      { new: true }
-    )
+    const updateData = {};
+    if (name !== undefined)
+      updateData.name = InputValidator.validateName(name).sanitized;
+    if (bio !== undefined)
+      updateData.bio = InputValidator.validateContent(bio).sanitized;
+    if (profilePicture !== undefined)
+      updateData.profilePicture =
+        InputValidator.validateProfilePictureUrl(profilePicture).sanitized;
+
+    const user = await User.findByIdAndUpdate(userId, updateData, { new: true })
       .populate("posts")
       .populate("likedPosts")
       .populate("comments")
       .populate("notifications")
       .populate("followers")
       .populate("following");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
     res.status(200).json(user);
   } catch (error) {
     next(error);
@@ -294,7 +339,7 @@ const logout = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "Strict",
+    sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
   });
   res.status(200).json({ message: "Logged out successfully" });
 };

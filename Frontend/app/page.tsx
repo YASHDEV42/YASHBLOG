@@ -1,7 +1,7 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Waves } from "lucide-react";
+import { ArrowRight, Sparkles, BookOpen, PenTool } from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -12,49 +12,94 @@ export const metadata: Metadata = {
 
 const Home = async () => {
   return (
-    <section className="relative h-screen flex items-center overflow-hidden ">
-      <Waves
-        size={300}
-        className="absolute top-40 right-20 text-primary/90 hidden lg:block"
-      />
-      <Waves
-        size={300}
-        className="absolute top-40 left-20 text-primary/90 hidden lg:block"
-      />
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(120,119,198,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.1),transparent_50%)]" />
+      </div>
 
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center">
-          <AnimatedTitle />
-          <p className="text-lg sm:text-xl mb-8 text-muted-foreground max-w-3xl mx-auto">
-            A place to read, write, and deepen your understanding of the world
-            around us.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="text-lg group relative overflow-hidden hover:-translate-y-[4px] transition-all duration-300 ease-in-out hover:shadow-lg hover:scale-105"
-            >
-              <Link href="/explorer" className="flex items-center">
-                Start reading
-                {/* First Arrow (moves out and disappears) */}
-                <ArrowRight className="ml-2 h-4 w-4 transition-all duration-300 ease-in-out transform group-hover:translate-x-[calc(100%+8px)] group-hover:opacity-0" />
-                {/* Second Arrow (starts outside and moves into the original position) */}
-                <ArrowRight className="ml-2 h-4 w-4 absolute transition-all duration-300 ease-in-out transform -translate-x-[calc(100%)] opacity-0 group-hover:translate-x-16 group-hover:opacity-100" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="text-lg hover:-translate-y-[4px] transition-all duration-300 ease-in-out hover:shadow-lg hover:scale-105"
-            >
-              <Link href="/profile/create-post">Start writing</Link>
-            </Button>
+      {/* Floating Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Floating Orbs */}
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/30 rounded-full animate-float" />
+        <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-secondary/40 rounded-full animate-float-delayed" />
+        <div className="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-primary/20 rounded-full animate-float-slow" />
+
+        {/* Geometric Shapes */}
+        <div className="absolute top-20 right-20 w-32 h-32 border border-primary/10 rounded-full animate-spin-slow hidden lg:block" />
+        <div className="absolute bottom-20 left-20 w-24 h-24 border border-secondary/10 rotate-45 animate-pulse hidden lg:block" />
+
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(120,119,198,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(120,119,198,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      </div>
+
+      {/* Main Content */}
+      <section className="relative z-10 flex items-center justify-center min-h-screen px-6">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center space-y-8">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">
+                Welcome to the future of blogging
+              </span>
+            </div>
+
+            {/* Animated Title */}
+            <div className="space-y-4">
+              <AnimatedTitle />
+              <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full" />
+            </div>
+
+            {/* Enhanced Description */}
+            <div className="max-w-4xl mx-auto space-y-4">
+              <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
+                A place to read, write, and deepen your understanding of the
+                world around us.
+              </p>
+            </div>
+
+            {/* Enhanced Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-6 pt-4">
+              <Button
+                asChild
+                size="lg"
+                className="group relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground border-0 px-8 py-6 text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105"
+              >
+                <Link href="/explorer" className="flex items-center gap-3">
+                  <BookOpen className="w-5 h-5" />
+                  Start Reading
+                  <div className="relative overflow-hidden w-5 h-5">
+                    <ArrowRight className="w-5 h-5 transition-all duration-300 ease-out transform group-hover:translate-x-6 group-hover:opacity-0" />
+                    <ArrowRight className="w-5 h-5 absolute top-0 left-0 transition-all duration-300 ease-out transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100" />
+                  </div>
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="group relative overflow-hidden bg-background/50 backdrop-blur-sm border-2 border-primary/20 hover:border-primary/40 px-8 py-6 text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:bg-primary/5"
+              >
+                <Link
+                  href="/profile/create-post"
+                  className="flex items-center gap-3"
+                >
+                  <PenTool className="w-5 h-5" />
+                  Start Writing
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Bottom Gradient */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+    </div>
   );
 };
 

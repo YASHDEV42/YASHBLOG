@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { usePosts } from "@/lib/hooks/posts/usePosts";
 import { usePost } from "@/lib/hooks/posts/usePost";
 import { CompletePost } from "@/types";
-import { Eye, Heart, Calendar, User } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Heart, Calendar, User } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
+import { PostViewsDisplay } from "@/components/PostViewsDisplay";
 
 export function AuthorPosts({ slug }: { slug: string }) {
   const { data: posts, isLoading: postsLoading } = usePosts();
@@ -78,15 +79,13 @@ export function AuthorPosts({ slug }: { slug: string }) {
       <div className="flex items-center gap-3 mb-6">
         {authorInfo ? (
           <>
-            <Avatar className="w-8 h-8">
-              <AvatarImage
-                src={authorInfo.profilePicture || ""}
-                alt={authorInfo.name || "Author"}
-              />
-              <AvatarFallback>
-                {authorInfo.name?.charAt(0) || "A"}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              user={{
+                name: authorInfo.name,
+                profilePicture: authorInfo.profilePicture,
+              }}
+              size="md"
+            />
             <div>
               <h2 className="text-2xl font-bold">
                 More from {authorInfo.name || "this author"}
@@ -153,10 +152,7 @@ export function AuthorPosts({ slug }: { slug: string }) {
                       <Heart className="w-3 h-3 text-red-500" />
                       <span>{post.metadata?.likes || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3 text-blue-500" />
-                      <span>{post.metadata?.views || 0}</span>
-                    </div>
+                    <PostViewsDisplay views={post.metadata?.views} size="sm" />
                   </div>
                   {/* Categories */}
                   {post.categories && post.categories.length > 0 && (

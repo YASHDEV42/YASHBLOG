@@ -12,9 +12,9 @@ import {
   Trash2,
   FileText,
   Calendar,
-  TrendingUp,
   Loader2,
 } from "lucide-react";
+import { PostViewsDisplay } from "@/components/PostViewsDisplay";
 import {
   Card,
   CardContent,
@@ -189,9 +189,10 @@ const App = ({ posts: initialPosts }: { posts: CompletePost[] }) => {
 
             <CardContent className="pt-0 flex-grow">
               <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed mb-4">
-                {post.excerpt?.split(" ").length > 15
-                  ? post.excerpt?.split(" ").slice(0, 15).join(" ") + "..."
-                  : post.excerpt}
+                {(post.excerpt ?? "").split(" ").length > 15
+                  ? (post.excerpt ?? "").split(" ").slice(0, 15).join(" ") +
+                    "..."
+                  : post.excerpt ?? ""}
               </p>
 
               {/* Stats */}
@@ -201,10 +202,7 @@ const App = ({ posts: initialPosts }: { posts: CompletePost[] }) => {
                     <Heart className="h-3 w-3 text-red-500" />
                     <span>{post.metadata?.likes || 0}</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <TrendingUp className="h-3 w-3 text-blue-500" />
-                    <span>{post.metadata?.views || 0}</span>
-                  </div>
+                  <PostViewsDisplay views={post.metadata?.views} size="sm" />
                 </div>
               </div>
             </CardContent>

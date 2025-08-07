@@ -6,15 +6,9 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { CompletePost } from "@/types";
-import {
-  Heart,
-  User,
-  Calendar,
-  TrendingUp,
-  Eye,
-  ChevronsRight,
-} from "lucide-react";
+import { Heart, User, Calendar, TrendingUp, ChevronsRight } from "lucide-react";
 import Link from "next/link";
+import { PostViewsDisplay } from "@/components/PostViewsDisplay";
 
 export function BlogCard({ post }: { post: CompletePost }) {
   const formatDate = (dateString: string | Date) => {
@@ -70,10 +64,7 @@ export function BlogCard({ post }: { post: CompletePost }) {
             </span>
           </span>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <Eye className="w-4 h-4 mr-1 text-gray-500" />
-              <span className="text-sm">{post.metadata?.views || 0}</span>
-            </div>
+            <PostViewsDisplay views={post.metadata?.views} />
             <div className="flex items-center">
               <Heart className="w-4 h-4 mr-1 text-red-500" />
               <span className="text-sm">{post.metadata?.likes || 0}</span>

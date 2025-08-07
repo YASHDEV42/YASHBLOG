@@ -76,7 +76,7 @@ const BlogPostEditor = () => {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto mt-16">
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle className="text-center lg:text-3xl md:text-2xl text-xl">
           Create and Share with Ease

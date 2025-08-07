@@ -4,11 +4,7 @@ import { clearUser, setUser } from "@/redux/slices/userSlice";
 import { useLogin } from "./useLogin";
 import { useRegister } from "./useRegister";
 import { useLogout } from "./useLogout";
-import { useRefreshUser } from "./useRefreshUser";
 
-/**
- * Custom hook for authentication state and actions
- */
 export function useAuth() {
   const dispatch = useDispatch();
   const { user, loading, initialized, error } = useSelector(
@@ -18,34 +14,44 @@ export function useAuth() {
   const loginMutation = useLogin();
   const registerMutation = useRegister();
   const logoutMutation = useLogout();
-  const { data: refreshedUser } = useRefreshUser();
 
   const login = async (email: string, password: string) => {
-    const result = await loginMutation.mutateAsync({ email, password });
-    if (result?.user) dispatch(setUser(result.user));
-    return result;
+    try {
+      const result = await loginMutation.mutateAsync({ email, password });
+      if (result?.user) {
+        dispatch(setUser(result.user));
+      }
+      return result;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const register = async (email: string, password: string, name: string) => {
-    const result = await registerMutation.mutateAsync({
-      email,
-      password,
-      name,
-    });
-    if (result?.user) dispatch(setUser(result.user));
-    return result;
+    try {
+      const result = await registerMutation.mutateAsync({
+        email,
+        password,
+        name,
+      });
+      if (result?.user) {
+        dispatch(setUser(result.user));
+      }
+      return result;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = async () => {
-    const result = await logoutMutation.mutateAsync();
-    dispatch(clearUser());
-    return result;
-  };
-
-  const refreshUser = async () => {
-    if (refreshedUser) dispatch(setUser(refreshedUser));
-    else dispatch(clearUser());
-    return refreshedUser;
+    try {
+      const result = await logoutMutation.mutateAsync();
+      dispatch(clearUser());
+      return result;
+    } catch (error) {
+      dispatch(clearUser()); // Clear user even if logout fails
+      throw error;
+    }
   };
 
   return {
@@ -57,6 +63,5 @@ export function useAuth() {
     login,
     register,
     logout,
-    refreshUser,
   };
 }

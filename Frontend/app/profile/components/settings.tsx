@@ -85,12 +85,110 @@ export default function Settings({ user }: { user: User | null }) {
   };
 
   const validateProfilePicture = (url: string) => {
-    if (!url) return true; // Optional field
+    if (!url || url.trim() === "") return { isValid: true, message: "" }; // Optional field
+
+    const trimmed = url.trim();
+
+    // Check URL length
+    if (trimmed.length > 500) {
+      return { isValid: false, message: "URL too long (max 500 characters)" };
+    }
+
+    // Check for suspicious patterns
+    const suspiciousPatterns = [
+      /javascript:/i,
+      /data:/i,
+      /vbscript:/i,
+      /file:/i,
+      /ftp:/i,
+      /<script/i,
+      /onclick/i,
+      /onerror/i,
+      /onload/i,
+    ];
+
+    if (suspiciousPatterns.some((pattern) => pattern.test(trimmed))) {
+      return { isValid: false, message: "URL contains unsafe content" };
+    }
+
+    // Validate URL format
     try {
-      new URL(url);
-      return true;
+      const urlObj = new URL(trimmed);
+
+      // Only allow http and https
+      if (!["http:", "https:"].includes(urlObj.protocol)) {
+        return {
+          isValid: false,
+          message: "Only HTTP and HTTPS URLs are allowed",
+        };
+      }
+
+      // Whitelist trusted domains
+      const allowedDomains = [
+        "imgur.com",
+        "i.imgur.com",
+        "github.com",
+        "raw.githubusercontent.com",
+        "gravatar.com",
+        "www.gravatar.com",
+        "secure.gravatar.com",
+        "cloudinary.com",
+        "res.cloudinary.com",
+        "unsplash.com",
+        "images.unsplash.com",
+        "pexels.com",
+        "images.pexels.com",
+        "pixabay.com",
+        "cdn.pixabay.com",
+        "imagekit.io",
+        "firebasestorage.googleapis.com",
+        "s3.amazonaws.com",
+        "storage.googleapis.com",
+      ];
+
+      const hostname = urlObj.hostname.toLowerCase();
+      const isAllowed = allowedDomains.some(
+        (domain) => hostname === domain || hostname.endsWith("." + domain)
+      );
+
+      if (!isAllowed) {
+        return {
+          isValid: false,
+          message:
+            "Please use a trusted image hosting service (imgur, gravatar, cloudinary, etc.)",
+        };
+      }
+
+      // Check for image file extensions (optional, as some services don't show extensions)
+      const pathname = urlObj.pathname.toLowerCase();
+      const imageExtensions = [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".svg",
+        ".bmp",
+      ];
+      const hasImageExtension = imageExtensions.some((ext) =>
+        pathname.endsWith(ext)
+      );
+
+      if (
+        !hasImageExtension &&
+        pathname !== "/" &&
+        !pathname.includes("/avatar/") &&
+        !pathname.includes("/image/")
+      ) {
+        return {
+          isValid: false,
+          message: "URL should point to an image file",
+        };
+      }
+
+      return { isValid: true, message: "" };
     } catch {
-      return false;
+      return { isValid: false, message: "Please enter a valid URL" };
     }
   };
 
@@ -115,16 +213,18 @@ export default function Settings({ user }: { user: User | null }) {
       return;
     }
 
-    if (
-      profileData.profilePicture &&
-      !validateProfilePicture(profileData.profilePicture)
-    ) {
-      setProfileMessage({
-        type: "error",
-        text: "Please enter a valid URL for profile picture",
-      });
-      setIsProfileLoading(false);
-      return;
+    if (profileData.profilePicture) {
+      const pictureValidation = validateProfilePicture(
+        profileData.profilePicture
+      );
+      if (!pictureValidation.isValid) {
+        setProfileMessage({
+          type: "error",
+          text: pictureValidation.message,
+        });
+        setIsProfileLoading(false);
+        return;
+      }
     }
 
     try {
@@ -418,11 +518,16 @@ export default function Settings({ user }: { user: User | null }) {
                 id="profilePicture"
                 name="profilePicture"
                 type="url"
-                placeholder="https://example.com/your-avatar.jpg"
+                placeholder="https://imgur.com/your-image.jpg"
                 value={profileData.profilePicture}
                 onChange={handleProfileChange}
                 className="h-11 bg-card border-border focus:border-primary focus:ring-primary/20"
               />
+              <p className="text-xs text-muted-foreground">
+                🔒 For security, only URLs from trusted image hosting services
+                are allowed (imgur, gravatar, cloudinary, unsplash, pexels,
+                etc.)
+              </p>
             </div>
 
             <div className="space-y-3">

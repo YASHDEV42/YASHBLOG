@@ -1,4 +1,3 @@
-// hooks/posts/useUpdatePost.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { Post } from "@/types";

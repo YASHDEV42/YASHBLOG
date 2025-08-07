@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { authLimiter } = require("../middleware/security.js");
 
 const {
   register,
@@ -19,8 +20,11 @@ const {
 } = require("../controllers/userController.js");
 const auth = require("../middleware/auth.js");
 
-router.post("/register", register);
-router.post("/login", login);
+// Authentication routes with stricter rate limiting
+router.post("/register", authLimiter, register);
+router.post("/login", authLimiter, login);
+
+// Protected routes
 router.get("/profile/:id", auth, getUserProfile);
 router.put("/profile/:id", auth, updateUserProfile);
 router.post("/follow", auth, followUser);

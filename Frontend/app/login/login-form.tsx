@@ -14,9 +14,11 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/lib/hooks/auth/useAuth";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/redux/slices/userSlice";
+import { useLogin } from "@/lib/hooks/auth/useLogin";
 import { useToast } from "@/lib/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert"; // Add this import
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
 
 export function LoginForm({
@@ -24,37 +26,49 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
-  const { login } = useAuth();
+  const dispatch = useDispatch();
+  const { mutateAsync: loginUser } = useLogin();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>(""); // Add local error state
+  const [error, setError] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(""); // Clear error when user types
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(""); // Clear previous errors
+    setError("");
 
     try {
-      const result = await login(formData.email, formData.password);
+      console.log("Attempting login...");
+      const result = await loginUser({
+        email: formData.email,
+        password: formData.password,
+      });
+      console.log("Login result:", result);
 
       if (result?.user) {
+        console.log("Dispatching user to Redux:", result.user);
+        dispatch(setUser(result.user));
+
         toast({
           title: "Success! 🎉",
           description: result.message || "Login successful",
         });
-        router.push("/");
+
+        // Navigate after a short delay to ensure state is updated
+        setTimeout(() => {
+          router.push("/");
+        }, 100);
       } else {
-        // Handle login failure
         const errorMessage = result?.message || "Invalid email or password";
         setError(errorMessage);
         toast({
@@ -64,10 +78,30 @@ export function LoginForm({
         });
       }
     } catch (error: unknown) {
+      console.error("Login error:", error);
       let errorMessage = "An unexpected error occurred";
 
       if (axios.isAxiosError(error)) {
-        errorMessage = error.response?.data?.message || error.message;
+        const responseData = error.response?.data;
+
+        // Handle rate limiting error (429)
+        if (error.response?.status === 429 && responseData) {
+          if (responseData.error && responseData.retryAfter) {
+            errorMessage = `${responseData.error}. Please try again in ${responseData.retryAfter}.`;
+          } else if (responseData.message) {
+            errorMessage = responseData.message;
+          } else if (responseData.error) {
+            errorMessage = responseData.error;
+          }
+        }
+        // Handle other errors
+        else if (responseData?.message) {
+          errorMessage = responseData.message;
+        } else if (responseData?.error) {
+          errorMessage = responseData.error;
+        } else {
+          errorMessage = error.message;
+        }
       } else if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === "string") {
@@ -95,13 +129,10 @@ export function LoginForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
-              {/* Display error alert */}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-red-400">
-                    {error}
-                  </AlertDescription>
+                  <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 

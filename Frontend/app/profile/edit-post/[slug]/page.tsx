@@ -1,4 +1,5 @@
 import BlogPostEditor from "./components/BlogPostEditor";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export default async function EditPostPage({
   params,
@@ -6,5 +7,9 @@ export default async function EditPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  return <BlogPostEditor slug={slug} />;
+  return (
+    <ProtectedRoute>
+      <BlogPostEditor slug={slug} />
+    </ProtectedRoute>
+  );
 }

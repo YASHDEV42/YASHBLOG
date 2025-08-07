@@ -16,4 +16,7 @@ export const usePost = (slug: string) =>
     queryKey: ["post", slug],
     queryFn: () => fetchPost(slug),
     enabled: !!slug,
+    refetchOnWindowFocus: false, // Prevent refetch when switching tabs
+    refetchOnMount: false, // Prevent refetch on component mount if data exists
+    staleTime: 5 * 60 * 1000,
   });

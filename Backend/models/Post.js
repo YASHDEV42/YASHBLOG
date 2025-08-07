@@ -52,5 +52,14 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Database Indexes for Performance
+// Note: slug index is created by unique: true in schema
+postSchema.index({ author: 1, createdAt: -1 }); // Author's posts sorted by date
+postSchema.index({ published: 1, createdAt: -1 }); // Published posts by date
+postSchema.index({ categories: 1 }); // Filter by categories
+postSchema.index({ "metadata.views": -1 }); // Most viewed posts
+postSchema.index({ "metadata.likes": -1 }); // Most liked posts
+postSchema.index({ title: "text", content: "text" }); // Text search
+
 const Post = mongoose.model("Post", postSchema);
 module.exports = Post;

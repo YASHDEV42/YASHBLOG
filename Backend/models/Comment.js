@@ -41,5 +41,11 @@ const commentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Database Indexes for Performance
+commentSchema.index({ post: 1, createdAt: -1 }); // Comments for a post
+commentSchema.index({ user: 1, createdAt: -1 }); // User's comments
+commentSchema.index({ parentComment: 1 }); // Replies to a comment
+commentSchema.index({ "metadata.likes": -1 }); // Most liked comments
+
 const Comment = mongoose.model("Comment", commentSchema);
 module.exports = Comment;
