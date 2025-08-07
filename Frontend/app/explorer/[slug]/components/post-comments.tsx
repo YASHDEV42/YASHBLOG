@@ -1,22 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/auth/useAuth";
 import { useCreateComment } from "@/lib/hooks/comments/useCreateComment";
-import { Comment } from "@/types";
+import { PopulatedComment } from "@/types";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface CommentsProps {
   postId: string;
-  initialComments?: Comment[];
+  initialComments?: PopulatedComment[];
 }
 
 export function Comments({ postId, initialComments = [] }: CommentsProps) {
   const { user: currentUser } = useAuth();
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [comments, setComments] = useState<PopulatedComment[]>(initialComments);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,15 +57,13 @@ export function Comments({ postId, initialComments = [] }: CommentsProps) {
       <div className="space-y-4 mb-4">
         {comments.map((comment) => (
           <div key={comment._id} className="flex space-x-4">
-            <Avatar>
-              <AvatarImage
-                src={comment.user.profilePicture || ""}
-                alt={comment.user.name || "User"}
-              />
-              <AvatarFallback>
-                {comment.user.name?.charAt(0) || "A"}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              user={{
+                name: comment.user.name,
+                profilePicture: comment.user.profilePicture,
+              }}
+              size="sm"
+            />
             <div>
               <p className="font-semibold">{comment.user.name}</p>
               <p className="text-sm text-muted-foreground">

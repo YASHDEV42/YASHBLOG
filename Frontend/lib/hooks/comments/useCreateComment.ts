@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Comment } from "@/types";
+import { PopulatedComment } from "@/types";
 import axiosInstance from "@/lib/axios";
 
 export const useCreateComment = () => {
@@ -10,7 +10,7 @@ export const useCreateComment = () => {
       postId: string;
       content: string;
       userId: string;
-    }): Promise<Comment> => {
+    }): Promise<PopulatedComment> => {
       const { data: response } = await axiosInstance.post(`/comment`, {
         content: data.content,
         postId: data.postId,
