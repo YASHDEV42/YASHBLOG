@@ -2,16 +2,19 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 const InputValidator = require("../middleware/inputValidator.js");
 
-const createTokens = (userId) => {
-  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: "15m",
+const createTokens = (res, userId) => {
+  const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: "7d", // 7 days for simplicity
   });
 
-  const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "7d",
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
-  return { accessToken, refreshToken };
+  return token;
 };
 
 const register = async (req, res, next) => {
@@ -57,66 +60,37 @@ const register = async (req, res, next) => {
     next(error);
   }
 };
-const login = async (req, res) => {
+const login = async (req, res, next) => {
+  const { email, password } = req.body;
+
+  // Validate email
+  const emailValidation = InputValidator.validateEmail(email);
+  if (!emailValidation.isValid) {
+    return res.status(400).json({ message: emailValidation.message });
+  }
+
+  if (!password || typeof password !== "string") {
+    return res.status(400).json({ message: "Password is required" });
+  }
+
   try {
-    // Validate input
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
-
-    // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: emailValidation.sanitized });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Create tokens
-    const { accessToken, refreshToken } = createTokens(user._id);
+    const token = createTokens(res, user._id);
 
-    // Production-friendly cookie configuration
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Only secure in production (HTTPS required)
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-origin in production
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: "/", // Make sure cookie is available site-wide
-    };
-
-    // Debug logging for production
-    console.log("🍪 Setting cookie with options:", cookieOptions);
-    console.log("🌍 Environment:", process.env.NODE_ENV);
-    console.log("🔗 Frontend URL:", process.env.FRONTEND_URL);
-
-    res.cookie("token", accessToken, cookieOptions);
-
-    // Log response headers for debugging
-    console.log("🍪 Response headers:", res.getHeaders());
-
-    res.status(200).json({
-      message: "Login successful",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        profilePicture: user.profilePicture,
-      },
-    });
+    res.status(200).json({ user });
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
-
 const getUserProfile = async (req, res, next) => {
   const userId = req.params.id;
   try {
@@ -361,25 +335,14 @@ const markNotificationAsRead = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-const logout = async (req, res) => {
-  try {
-    // Clear the cookie with the same options used to set it
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      path: "/",
-    };
-
-    res.clearCookie("token", cookieOptions);
-
-    res.status(200).json({ message: "Logout successful" });
-  } catch (error) {
-    console.error("Logout error:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
+const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+  });
+  res.status(200).json({ message: "Logged out successfully" });
 };
-
 const getCurrentUser = (req, res) => {
   const token = req.cookies.token;
   if (!token) {

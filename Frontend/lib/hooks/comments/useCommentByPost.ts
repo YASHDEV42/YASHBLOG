@@ -10,9 +10,9 @@ export const useCommentByPost = () => {
       postId: string;
     }): Promise<PopulatedComment[]> => {
       const { data: response } = await axiosInstance.get(
-        `/comment/${data.postId}`
+        `/comment/post/${data.postId}` // Updated route path
       );
-      return response.comments || response; // Handle both response formats
+      return response.comments || response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments"] });

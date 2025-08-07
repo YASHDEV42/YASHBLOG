@@ -88,14 +88,9 @@ const securityHeaders = (req, res, next) => {
   next();
 };
 
-// Fallback middleware for when rate limiting is not available
-const noOpMiddleware = (req, res, next) => {
-  next();
-};
-
 module.exports = {
-  apiLimiter: apiLimiter || noOpMiddleware,
-  authLimiter: authLimiter || noOpMiddleware,
-  createLimiter: createLimiter || noOpMiddleware,
-  securityHeaders: securityHeaders || noOpMiddleware,
+  apiLimiter,
+  authLimiter,
+  createLimiter,
+  securityHeaders,
 };

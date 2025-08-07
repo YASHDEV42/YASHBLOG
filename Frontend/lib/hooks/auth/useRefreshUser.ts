@@ -5,10 +5,10 @@ export function useRefreshUser() {
   return useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/user/current");
+      const res = await axiosInstance.get("/user/profile");
       return res.data.user;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: 1,
   });
 }

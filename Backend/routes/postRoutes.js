@@ -1,45 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/auth.js");
-let createLimiter, apiLimiter;
-try {
-  const securityMiddleware = require("../middleware/security.js");
-  createLimiter = securityMiddleware.createLimiter;
-  apiLimiter = securityMiddleware.apiLimiter;
-} catch (error) {
-  console.warn(
-    "⚠️ Security middleware not available, using fallback for posts"
-  );
-  createLimiter = (req, res, next) => next();
-  apiLimiter = (req, res, next) => next();
-}
-
-// Import post controller with error handling
-let postController;
-try {
-  postController = require("../controllers/postController.js");
-} catch (error) {
-  console.error("❌ Error loading post controller:", error.message);
-  // Create fallback controller methods
-  const fallbackHandler = (req, res) => {
-    res.status(503).json({
-      error: "Post service unavailable",
-      message: "Please try again later",
-    });
-  };
-
-  postController = {
-    createPost: fallbackHandler,
-    getPost: fallbackHandler,
-    getAllPosts: fallbackHandler,
-    updatePost: fallbackHandler,
-    deletePost: fallbackHandler,
-    togglePublished: fallbackHandler,
-    toggleLike: fallbackHandler,
-    getPostByAuthor: fallbackHandler,
-  };
-}
-
+const { createLimiter } = require("../middleware/security.js");
 const {
   createPost,
   getPost,
@@ -49,16 +10,21 @@ const {
   togglePublished,
   toggleLike,
   getPostByAuthor,
-} = postController;
+} = require("../controllers/postController.js");
+const auth = require("../middleware/auth.js");
 
-// Routes
+// Content creation with rate limiting
 router.post("/", auth, createLimiter, createPost);
-router.get("/", apiLimiter, getAllPosts);
-router.get("/author", auth, apiLimiter, getPostByAuthor);
-router.get("/:slug", apiLimiter, getPost);
+
+// Reading operations (no extra rate limiting needed)
+router.get("/:slug", auth, getPost);
+router.get("/", auth, getAllPosts);
+
+// Modification operations
 router.put("/:slug", auth, updatePost);
 router.delete("/:slug", auth, deletePost);
-router.patch("/:slug/publish", auth, togglePublished);
+router.put("/:slug/publish", auth, togglePublished);
 router.put("/:slug/like", auth, toggleLike);
+router.get("/author", auth, getPostByAuthor);
 
 module.exports = router;
