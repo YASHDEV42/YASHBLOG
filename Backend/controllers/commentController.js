@@ -23,7 +23,7 @@ const createComment = async (req, res, next) => {
     const comment = new Comment({
       content,
       post: postId,
-      user: userId, // Changed from author to user to match your model
+      user: userId, // Use 'user' field consistently
     });
 
     await comment.save();
@@ -47,7 +47,7 @@ const getCommentsByPost = async (req, res, next) => {
     const { postId } = req.params;
 
     const comments = await Comment.find({ post: postId })
-      .populate("author", "name email profilePicture")
+      .populate("user", "name email profilePicture") // Changed from 'author' to 'user'
       .sort({ createdAt: -1 });
     if (!comments) {
       return res
@@ -59,25 +59,27 @@ const getCommentsByPost = async (req, res, next) => {
     next(error);
   }
 };
+
 const deleteComment = async (req, res, next) => {
   try {
-    const { commentId } = req.params;
+    const { id } = req.params; // Changed from commentId to id to match route
     const userId = req.userId;
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findById(id);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    if (comment.author.toString() !== userId) {
+    if (comment.user.toString() !== userId) {
+      // Changed from 'author' to 'user'
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    await Comment.findByIdAndDelete(commentId);
+    await Comment.findByIdAndDelete(id);
     await Post.findByIdAndUpdate(comment.post, {
       $pull: { comments: comment._id },
     });
@@ -88,9 +90,10 @@ const deleteComment = async (req, res, next) => {
     next(error);
   }
 };
+
 const updateComment = async (req, res, next) => {
   try {
-    const { commentId } = req.params;
+    const { id } = req.params; // Changed from commentId to id to match route
     const { content } = req.body;
     const userId = req.userId;
 
@@ -98,12 +101,13 @@ const updateComment = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findById(id);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    if (comment.author.toString() !== userId) {
+    if (comment.user.toString() !== userId) {
+      // Changed from 'author' to 'user'
       return res.status(403).json({ message: "Forbidden" });
     }
 
@@ -118,10 +122,10 @@ const updateComment = async (req, res, next) => {
 
 const getCommentById = async (req, res, next) => {
   try {
-    const { commentId } = req.params;
+    const { id } = req.params; // Changed from commentId to id to match route
 
-    const comment = await Comment.findById(commentId)
-      .populate("author", "name email profilePicture")
+    const comment = await Comment.findById(id)
+      .populate("user", "name email profilePicture") // Changed from 'author' to 'user'
       .populate("post", "title slug");
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
@@ -140,7 +144,7 @@ const getCommentsByUser = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const comments = await Comment.find({ author: userId })
+    const comments = await Comment.find({ user: userId }) // Changed from 'author' to 'user'
       .populate("post", "title slug")
       .sort({ createdAt: -1 });
 
@@ -155,6 +159,7 @@ const getCommentsByUser = async (req, res, next) => {
     next(error);
   }
 };
+
 const replayComment = async (req, res, next) => {
   try {
     const { commentId } = req.params;
@@ -173,8 +178,8 @@ const replayComment = async (req, res, next) => {
     const reply = new Comment({
       content,
       post: parentComment.post,
-      author: userId,
-      parent: commentId,
+      user: userId, // Changed from 'author' to 'user'
+      parentComment: commentId, // Changed from 'parent' to 'parentComment'
     });
     await reply.save();
     parentComment.replies.push(reply._id);

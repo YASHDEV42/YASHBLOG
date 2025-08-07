@@ -6,7 +6,7 @@ export const useCommentById = (commentId: string) => {
   return useQuery({
     queryKey: ["comment", commentId],
     queryFn: async (): Promise<PopulatedComment> => {
-      const { data } = await axiosInstance.get(`/comment/${commentId}`);
+      const { data } = await axiosInstance.get(`/comment/single/${commentId}`); // Fixed route path
       return data;
     },
     enabled: !!commentId,
