@@ -2,19 +2,16 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 const InputValidator = require("../middleware/inputValidator.js");
 
-const createTokens = (res, userId) => {
-  const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d", // 7 days for simplicity
+const createTokens = (userId) => {
+  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: "15m",
   });
 
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "7d",
   });
 
-  return token;
+  return { accessToken, refreshToken };
 };
 
 const register = async (req, res, next) => {
@@ -60,37 +57,66 @@ const register = async (req, res, next) => {
     next(error);
   }
 };
-const login = async (req, res, next) => {
-  const { email, password } = req.body;
-
-  // Validate email
-  const emailValidation = InputValidator.validateEmail(email);
-  if (!emailValidation.isValid) {
-    return res.status(400).json({ message: emailValidation.message });
-  }
-
-  if (!password || typeof password !== "string") {
-    return res.status(400).json({ message: "Password is required" });
-  }
-
+const login = async (req, res) => {
   try {
-    const user = await User.findOne({ email: emailValidation.sanitized });
+    // Validate input
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = createTokens(res, user._id);
+    // Create tokens
+    const { accessToken, refreshToken } = createTokens(user._id);
 
-    res.status(200).json({ user });
+    // Production-friendly cookie configuration
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Only secure in production (HTTPS required)
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-origin in production
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/", // Make sure cookie is available site-wide
+    };
+
+    // Debug logging for production
+    console.log("🍪 Setting cookie with options:", cookieOptions);
+    console.log("🌍 Environment:", process.env.NODE_ENV);
+    console.log("🔗 Frontend URL:", process.env.FRONTEND_URL);
+
+    res.cookie("token", accessToken, cookieOptions);
+
+    // Log response headers for debugging
+    console.log("🍪 Response headers:", res.getHeaders());
+
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        profilePicture: user.profilePicture,
+      },
+    });
   } catch (error) {
-    next(error);
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const getUserProfile = async (req, res, next) => {
   const userId = req.params.id;
   try {
@@ -335,14 +361,25 @@ const markNotificationAsRead = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-const logout = (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
-  });
-  res.status(200).json({ message: "Logged out successfully" });
+const logout = async (req, res) => {
+  try {
+    // Clear the cookie with the same options used to set it
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+    };
+
+    res.clearCookie("token", cookieOptions);
+
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
+
 const getCurrentUser = (req, res) => {
   const token = req.cookies.token;
   if (!token) {

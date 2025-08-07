@@ -7,30 +7,58 @@ const { apiLimiter, securityHeaders } = require("./middleware/security.js");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
-// Trust proxy for rate limiting behind reverse proxy
-app.set("trust proxy", 1);
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
 
-// Security headers (apply early)
+    const allowedOrigins = [
+      "http://localhost:3000", // Development
+      process.env.FRONTEND_URL, // Production frontend URL
+      "https://yashblog-hazel.vercel.app",
+    ].filter(Boolean);
+
+    console.log("🌍 Request origin:", origin);
+    console.log("✅ Allowed origins:", allowedOrigins);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn("❌ Origin not allowed by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Origin",
+    "X-Requested-With",
+    "Content-Type",
+    "Accept",
+    "Authorization",
+    "Cookie",
+  ],
+  exposedHeaders: ["Set-Cookie"],
+  preflightContinue: false,
+  optionsSuccessStatus: 200,
+};
+
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
+// Security headers
 app.use(securityHeaders);
 
 // CORS configuration
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors(corsOptions));
 
 // Body parsing middleware
-app.use(express.json({ limit: "10mb" })); // Limit request size
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
