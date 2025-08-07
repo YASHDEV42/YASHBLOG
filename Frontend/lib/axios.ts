@@ -8,12 +8,41 @@ const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
+    // Add explicit cookie header handling for production
+    ...(process.env.NODE_ENV === "production" && {
+      "Access-Control-Allow-Credentials": "true",
+    }),
   },
   timeout: 10000,
 });
 
+// Add request interceptor to log cookie issues
+axiosInstance.interceptors.request.use(
+  (config) => {
+    if (process.env.NODE_ENV === "production") {
+      console.log("Request cookies:", document.cookie);
+      console.log("Request URL:", config.url);
+      console.log("WithCredentials:", config.withCredentials);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful cookie responses in production
+    if (
+      process.env.NODE_ENV === "production" &&
+      response.headers["set-cookie"]
+    ) {
+      console.log(
+        "Response set-cookie headers:",
+        response.headers["set-cookie"]
+      );
+    }
+    return response;
+  },
   (error) => {
     // Log errors in production for debugging
     if (process.env.NODE_ENV === "production") {
@@ -22,6 +51,8 @@ axiosInstance.interceptors.response.use(
         url: error.config?.url,
         message: error.message,
         timestamp: new Date().toISOString(),
+        cookies: document.cookie,
+        responseHeaders: error.response?.headers,
       });
     }
 
