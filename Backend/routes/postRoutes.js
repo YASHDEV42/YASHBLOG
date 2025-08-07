@@ -1,6 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const { createLimiter } = require("../middleware/security.js");
+const auth = require("../middleware/auth.js");
+
+// Import security middleware with fallback
+let createLimiter, apiLimiter;
+try {
+  const securityMiddleware = require("../middleware/security.js");
+  createLimiter = securityMiddleware.createLimiter;
+  apiLimiter = securityMiddleware.apiLimiter;
+} catch (error) {
+  console.warn("⚠️ Security middleware not available, using fallback");
+  createLimiter = (req, res, next) => next();
+  apiLimiter = (req, res, next) => next();
+}
+
 const {
   createPost,
   getPost,
@@ -11,20 +24,29 @@ const {
   toggleLike,
   getPostByAuthor,
 } = require("../controllers/postController.js");
-const auth = require("../middleware/auth.js");
 
-// Content creation with rate limiting
+// Create post with rate limiting
 router.post("/", auth, createLimiter, createPost);
 
-// Reading operations (no extra rate limiting needed)
-router.get("/:slug", auth, getPost);
-router.get("/", auth, getAllPosts);
+// Get all posts
+router.get("/", apiLimiter, getAllPosts);
 
-// Modification operations
+// Get posts by author
+router.get("/author", auth, apiLimiter, getPostByAuthor);
+
+// Get single post by slug
+router.get("/:slug", apiLimiter, getPost);
+
+// Update post
 router.put("/:slug", auth, updatePost);
+
+// Delete post
 router.delete("/:slug", auth, deletePost);
-router.put("/:slug/publish", auth, togglePublished);
+
+// Toggle published status
+router.patch("/:slug/publish", auth, togglePublished);
+
+// Toggle like
 router.put("/:slug/like", auth, toggleLike);
-router.get("/author", auth, getPostByAuthor);
 
 module.exports = router;

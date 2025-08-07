@@ -107,11 +107,50 @@ app.get("/health", (req, res) => {
   });
 });
 
-// API Routes
-app.use("/api/user", require("./routes/userRoutes"));
-app.use("/api/post", require("./routes/postRoutes"));
-app.use("/api/comment", require("./routes/commentRoutes.js"));
-app.use("/api/notification", require("./routes/notificationRoutes"));
+// API Routes - with error handling
+try {
+  const userRoutes = require("./routes/userRoutes");
+  if (userRoutes) {
+    app.use("/api/user", userRoutes);
+  } else {
+    console.warn("⚠️ userRoutes not available");
+  }
+} catch (error) {
+  console.error("❌ Error loading userRoutes:", error.message);
+}
+
+try {
+  const postRoutes = require("./routes/postRoutes");
+  if (postRoutes) {
+    app.use("/api/post", postRoutes);
+  } else {
+    console.warn("⚠️ postRoutes not available");
+  }
+} catch (error) {
+  console.error("❌ Error loading postRoutes:", error.message);
+}
+
+try {
+  const commentRoutes = require("./routes/commentRoutes.js");
+  if (commentRoutes) {
+    app.use("/api/comment", commentRoutes);
+  } else {
+    console.warn("⚠️ commentRoutes not available");
+  }
+} catch (error) {
+  console.error("❌ Error loading commentRoutes:", error.message);
+}
+
+try {
+  const notificationRoutes = require("./routes/notificationRoutes");
+  if (notificationRoutes) {
+    app.use("/api/notification", notificationRoutes);
+  } else {
+    console.warn("⚠️ notificationRoutes not available");
+  }
+} catch (error) {
+  console.error("❌ Error loading notificationRoutes:", error.message);
+}
 
 // 404 handler for undefined routes
 app.use(notFound);

@@ -1,62 +1,101 @@
+// Enhanced security middleware
 const rateLimit = require("express-rate-limit");
 
-// Enhanced rate limiter for production
-const createRateLimiter = (windowMs, max, message) => {
-  return rateLimit({
-    windowMs,
-    max: process.env.NODE_ENV === "development" ? max * 10 : max, // More lenient in development
-    message: { error: message },
-    standardHeaders: true,
-    legacyHeaders: false,
-    skipSuccessfulRequests: true, // Don't count successful requests
-  });
-};
+// General API rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per window
+  message: {
+    error: "Too many requests from this IP, please try again later",
+    retryAfter: "15 minutes",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      error: "Too many requests from this IP, please try again later",
+      retryAfter: "15 minutes",
+    });
+  },
+});
 
-const authLimiter = createRateLimiter(
-  15 * 60 * 1000, // 15 minutes
-  5, // limit each IP to 5 requests per windowMs
-  "Too many authentication attempts, please try again later"
-);
+// Strict rate limiting for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === "production" ? 10 : 50, // 10 in production, 50 in development
+  message: {
+    error: "Too many authentication attempts, try again later",
+    retryAfter: "15 minutes",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful requests
+  skipFailedRequests: false, // Count failed requests
+  handler: (req, res) => {
+    res.status(429).json({
+      error: "Too many login attempts, please try again later",
+      retryAfter: "15 minutes",
+    });
+  },
+});
 
-const generalLimiter = createRateLimiter(
-  15 * 60 * 1000, // 15 minutes
-  100, // limit each IP to 100 requests per windowMs
-  "Too many requests, please try again later"
-);
+// Moderate rate limiting for content creation
+const createLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // 5 posts/comments per minute
+  message: {
+    error: "Too many posts created, please slow down",
+    retryAfter: "1 minute",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      error: "You're creating content too quickly, please slow down",
+      retryAfter: "1 minute",
+    });
+  },
+});
 
-const securityMiddleware = (req, res, next) => {
-  // Enhanced security headers for production
+// Security headers middleware
+const securityHeaders = (req, res, next) => {
+  // Prevent MIME type sniffing
   res.setHeader("X-Content-Type-Options", "nosniff");
+
+  // Prevent clickjacking
   res.setHeader("X-Frame-Options", "DENY");
+
+  // Enable XSS protection
   res.setHeader("X-XSS-Protection", "1; mode=block");
+
+  // Referrer policy
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 
-  // Enhanced CSP for production
-  if (process.env.NODE_ENV === "production") {
-    res.setHeader(
-      "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
-    );
-
-    // HSTS for production
-    res.setHeader(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains"
-    );
-  }
-
-  // Log request for debugging
-  console.log(
-    `🔍 ${req.method} ${req.path} - Origin: ${req.get(
-      "origin"
-    )} - User-Agent: ${req.get("user-agent")?.substring(0, 50)}...`
+  // Content Security Policy
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline'; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "font-src 'self' https://fonts.gstatic.com; " +
+      "img-src 'self' data: https:; " +
+      "connect-src 'self'"
   );
+
+  // Remove Express header
+  res.removeHeader("X-Powered-By");
 
   next();
 };
 
+// Fallback middleware for when rate limiting is not available
+const noOpMiddleware = (req, res, next) => {
+  next();
+};
+
 module.exports = {
-  securityMiddleware,
-  authLimiter,
-  generalLimiter,
+  apiLimiter: apiLimiter || noOpMiddleware,
+  authLimiter: authLimiter || noOpMiddleware,
+  createLimiter: createLimiter || noOpMiddleware,
+  securityHeaders: securityHeaders || noOpMiddleware,
 };
