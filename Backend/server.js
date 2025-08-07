@@ -97,7 +97,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// API Routes with error handling
+// API Routes with better error handling
 try {
   app.use("/api/user", require("./routes/userRoutes"));
   console.log("✅ User routes loaded");
@@ -106,15 +106,17 @@ try {
 }
 
 try {
-  app.use("/api/post", require("./routes/postRoutes"));
+  // Ensure postRoutes.js exists
+  const postRoutes = require("./routes/postRoutes");
+  app.use("/api/post", postRoutes);
   console.log("✅ Post routes loaded");
 } catch (error) {
   console.error("❌ Error loading post routes:", error.message);
-  // Create a fallback route
+  // Create fallback for missing post routes
   app.use("/api/post", (req, res) => {
     res.status(503).json({
       error: "Post service temporarily unavailable",
-      message: "Post routes failed to load",
+      message: "Please try again later",
     });
   });
 }
@@ -150,6 +152,15 @@ app.use(errorHandler);
 
 // Server start
 const PORT = process.env.PORT || 5000;
+
+// Add environment validation
+const requiredEnvVars = ["MONGO_URL", "JWT_SECRET"];
+const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error("❌ Missing required environment variables:", missingEnvVars);
+  process.exit(1);
+}
 
 const startServer = async () => {
   try {

@@ -1,17 +1,43 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth.js");
-
-// Import security middleware with fallback
 let createLimiter, apiLimiter;
 try {
   const securityMiddleware = require("../middleware/security.js");
   createLimiter = securityMiddleware.createLimiter;
   apiLimiter = securityMiddleware.apiLimiter;
 } catch (error) {
-  console.warn("⚠️ Security middleware not available, using fallback");
+  console.warn(
+    "⚠️ Security middleware not available, using fallback for posts"
+  );
   createLimiter = (req, res, next) => next();
   apiLimiter = (req, res, next) => next();
+}
+
+// Import post controller with error handling
+let postController;
+try {
+  postController = require("../controllers/postController.js");
+} catch (error) {
+  console.error("❌ Error loading post controller:", error.message);
+  // Create fallback controller methods
+  const fallbackHandler = (req, res) => {
+    res.status(503).json({
+      error: "Post service unavailable",
+      message: "Please try again later",
+    });
+  };
+
+  postController = {
+    createPost: fallbackHandler,
+    getPost: fallbackHandler,
+    getAllPosts: fallbackHandler,
+    updatePost: fallbackHandler,
+    deletePost: fallbackHandler,
+    togglePublished: fallbackHandler,
+    toggleLike: fallbackHandler,
+    getPostByAuthor: fallbackHandler,
+  };
 }
 
 const {
@@ -23,30 +49,16 @@ const {
   togglePublished,
   toggleLike,
   getPostByAuthor,
-} = require("../controllers/postController.js");
+} = postController;
 
-// Create post with rate limiting
+// Routes
 router.post("/", auth, createLimiter, createPost);
-
-// Get all posts
 router.get("/", apiLimiter, getAllPosts);
-
-// Get posts by author
 router.get("/author", auth, apiLimiter, getPostByAuthor);
-
-// Get single post by slug
 router.get("/:slug", apiLimiter, getPost);
-
-// Update post
 router.put("/:slug", auth, updatePost);
-
-// Delete post
 router.delete("/:slug", auth, deletePost);
-
-// Toggle published status
 router.patch("/:slug/publish", auth, togglePublished);
-
-// Toggle like
 router.put("/:slug/like", auth, toggleLike);
 
 module.exports = router;
