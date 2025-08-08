@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const { createLimiter } = require("../middleware/security.js");
 const {
   createPost,
   getPost,
@@ -13,10 +12,8 @@ const {
 } = require("../controllers/postController.js");
 const auth = require("../middleware/auth.js");
 
-// Content creation with rate limiting
-router.post("/", auth, createLimiter, createPost);
+router.post("/", auth, createPost);
 
-// Reading operations (no extra rate limiting needed)
 router.get("/:slug", auth, getPost);
 router.get("/", auth, getAllPosts);
 

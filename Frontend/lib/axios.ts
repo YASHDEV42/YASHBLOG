@@ -1,38 +1,133 @@
 // lib/axios.js (or wherever you put it)
-import axios from "axios";
-import store from "@/redux/store";
-import { clearUser } from "@/redux/slices/userSlice";
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from "axios";
 
-const axiosInstance = axios.create({
+const axiosInstance: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 10000,
 });
 
+// ---------------- In‑memory access token handling ----------------
+let accessToken: string | null = null;
+
+export function setAccessToken(token: string | null) {
+  accessToken = token;
+  if (token) {
+    axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    delete axiosInstance.defaults.headers.common.Authorization;
+  }
+}
+
+export function getAccessToken() {
+  return accessToken;
+}
+
+// ---------------- Refresh coordination (single flight) ------------
+let refreshPromise: Promise<string> | null = null;
+const refreshSubscribers: Array<(t: string) => void> = [];
+const errorSubscribers: Array<(e: unknown) => void> = [];
+
+function subscribeTokenRefresh(
+  resolve: (t: string) => void,
+  reject: (e: unknown) => void
+) {
+  refreshSubscribers.push(resolve);
+  errorSubscribers.push(reject);
+}
+
+function notifyRefreshSuccess(token: string) {
+  refreshSubscribers.splice(0).forEach((cb) => cb(token));
+  errorSubscribers.splice(0);
+}
+
+function notifyRefreshError(err: unknown) {
+  errorSubscribers.splice(0).forEach((cb) => cb(err));
+  refreshSubscribers.splice(0);
+}
+
+// --------------- Perform refresh (single shared promise) ----------
+async function performRefresh(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api") +
+          "/user/refresh",
+        {},
+        { withCredentials: true }
+      )
+      .then((res) => {
+        const newToken = res.data?.accessToken;
+        if (!newToken) throw new Error("No access token in refresh response");
+        setAccessToken(newToken);
+        notifyRefreshSuccess(newToken);
+        return newToken;
+      })
+      .catch((err) => {
+        setAccessToken(null);
+        notifyRefreshError(err);
+        throw err;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+// ---------------- Request interceptor (attach token) --------------
+axiosInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (accessToken && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
+// ---------------- Response interceptor (401 handling) -------------
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const status = error.response?.status;
+  async (error: AxiosError) => {
+    const original = error.config as
+      | (InternalAxiosRequestConfig & { __retry?: boolean })
+      | undefined;
 
-    // Handle 401 - Unauthorized (e.g. expired token)
-    if (status === 401) {
-      store.dispatch(clearUser());
-
-      if (typeof window !== "undefined") {
-        const publicPaths = ["/", "/login", "/signup", "/explore"];
-        const currentPath = window.location.pathname;
-
-        if (!publicPaths.includes(currentPath)) {
-          window.location.href = "/login";
-        }
-      }
+    // If no response or already retried or not 401 -> reject
+    if (
+      !original ||
+      original.__retry ||
+      !error.response ||
+      error.response.status !== 401
+    ) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    // Do not try to refresh for the refresh endpoint itself
+    if (original.url?.includes("/user/refresh")) {
+      return Promise.reject(error);
+    }
+
+    original.__retry = true;
+
+    try {
+      const newToken = await new Promise<string>(async (resolve, reject) => {
+        subscribeTokenRefresh(resolve, reject);
+        try {
+          await performRefresh();
+        } catch (e) {
+          // performRefresh will trigger notifyRefreshError
+        }
+      });
+
+      // Token acquired, retry original request
+      original.headers = original.headers || {};
+      original.headers.Authorization = `Bearer ${newToken}`;
+      return axiosInstance(original);
+    } catch (refreshErr) {
+      // Final failure: propagate original 401
+      return Promise.reject(refreshErr);
+    }
   }
 );
-
-export default axiosInstance;

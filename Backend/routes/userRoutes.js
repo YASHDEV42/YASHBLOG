@@ -5,20 +5,26 @@ const {
   register,
   login,
   logout,
-  getProfile,
-  updateProfile,
-  refreshToken,
+  getCurrentUser,
+  getUserProfile,
+  updateUserProfile,
+  refreshTokenHandler,
 } = require("../controllers/userController.js");
 
 const auth = require("../middleware/auth.js");
-const { authLimiter, apiLimiter } = require("../middleware/security.js");
 
-router.post("/register", authLimiter, register);
-router.post("/login", authLimiter, login);
-router.post("/refresh", refreshToken);
-
-router.get("/profile", auth, apiLimiter, getProfile);
-router.put("/profile", auth, apiLimiter, updateProfile);
+router.post("/register", register);
+router.post("/login", login);
 router.post("/logout", auth, logout);
+router.post("/refresh", refreshTokenHandler);
+router.get("/current", auth, getCurrentUser);
+
+// Current user profile (already authenticated)
+router.get("/profile", auth, getUserProfile);
+router.put("/profile", auth, updateUserProfile);
+
+// Optional explicit user id profile access (controlled by auth/authorization)
+router.get("/:id/profile", auth, getUserProfile);
+router.put("/:id/profile", auth, updateUserProfile);
 
 module.exports = router;

@@ -11,19 +11,16 @@ const createPost = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Validate title
     const titleValidation = InputValidator.validateTitle(title);
     if (!titleValidation.isValid) {
       return res.status(400).json({ message: titleValidation.message });
     }
 
-    // Validate content
     const contentValidation = InputValidator.validateContent(content);
     if (!contentValidation.isValid) {
       return res.status(400).json({ message: contentValidation.message });
     }
 
-    // Validate categories
     const categoriesValidation = InputValidator.validateCategories(categories);
     if (!categoriesValidation.isValid) {
       return res.status(400).json({ message: categoriesValidation.message });

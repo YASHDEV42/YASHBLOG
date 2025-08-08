@@ -1,9 +1,5 @@
-// Input validation and sanitization utilities
 const validator = require("validator");
 
-/**
- * Validate and sanitize user input
- */
 class InputValidator {
   // Email validation
   static validateEmail(email) {
@@ -11,13 +7,11 @@ class InputValidator {
       return { isValid: false, message: "Email is required" };
     }
 
-    const sanitized = email.trim().toLowerCase();
-
-    if (!validator.isEmail(sanitized)) {
-      return { isValid: false, message: "Invalid email format" };
+    if (!validator.isEmail(email)) {
+      return { isValid: false, message: "Please provide a valid email" };
     }
 
-    return { isValid: true, sanitized };
+    return { isValid: true, sanitized: email.toLowerCase().trim() };
   }
 
   // Password validation
@@ -26,26 +20,19 @@ class InputValidator {
       return { isValid: false, message: "Password is required" };
     }
 
-    if (password.length < 8) {
+    if (password.length < 6) {
       return {
         isValid: false,
-        message: "Password must be at least 8 characters long",
+        message: "Password must be at least 6 characters long",
       };
     }
-
-    if (password.length > 128) {
-      return { isValid: false, message: "Password too long" };
-    }
-
-    // Check for at least one number, one lowercase, one uppercase
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
       return {
         isValid: false,
         message:
-          "Password must contain at least one number, one lowercase and one uppercase letter",
+          "Password must contain at least one uppercase letter and one number",
       };
     }
-
     return { isValid: true, sanitized: password };
   }
 
@@ -64,19 +51,10 @@ class InputValidator {
       };
     }
 
-    if (sanitized.length > 50) {
+    if (sanitized.length > 10) {
       return {
         isValid: false,
-        message: "Name must be less than 50 characters",
-      };
-    }
-
-    // Only allow letters, spaces, hyphens, and apostrophes
-    if (!/^[a-zA-Z\s\-']+$/.test(sanitized)) {
-      return {
-        isValid: false,
-        message:
-          "Name can only contain letters, spaces, hyphens, and apostrophes",
+        message: "Name must be less than 10 characters",
       };
     }
 
@@ -86,10 +64,13 @@ class InputValidator {
   // Post title validation
   static validateTitle(title) {
     if (!title || typeof title !== "string") {
-      return { isValid: false, message: "Title is required" };
+      return {
+        isValid: false,
+        message: "Title is required and must be a string",
+      };
     }
 
-    const sanitized = validator.escape(title.trim());
+    const sanitized = title.trim();
 
     if (sanitized.length < 3) {
       return {
@@ -98,10 +79,10 @@ class InputValidator {
       };
     }
 
-    if (sanitized.length > 200) {
+    if (sanitized.length > 100) {
       return {
         isValid: false,
-        message: "Title must be less than 200 characters",
+        message: "Title must be less than 100 characters",
       };
     }
 
@@ -111,7 +92,10 @@ class InputValidator {
   // Post content validation
   static validateContent(content) {
     if (!content || typeof content !== "string") {
-      return { isValid: false, message: "Content is required" };
+      return {
+        isValid: false,
+        message: "Content is required and must be a string",
+      };
     }
 
     const sanitized = content.trim();
@@ -122,11 +106,10 @@ class InputValidator {
         message: "Content must be at least 10 characters long",
       };
     }
-
-    if (sanitized.length > 50000) {
+    if (sanitized.length > 10000) {
       return {
         isValid: false,
-        message: "Content is too long (max 50,000 characters)",
+        message: "Content must be less than 10000 characters",
       };
     }
 
@@ -177,22 +160,18 @@ class InputValidator {
 
   // Category validation
   static validateCategories(categories) {
-    if (!categories) return { isValid: true, sanitized: [] };
+    if (!categories) {
+      return { isValid: true, sanitized: [] };
+    }
 
     if (!Array.isArray(categories)) {
       return { isValid: false, message: "Categories must be an array" };
     }
 
-    if (categories.length > 5) {
-      return { isValid: false, message: "Maximum 5 categories allowed" };
-    }
-
     const sanitized = categories
-      .map((cat) => {
-        if (typeof cat !== "string") return "";
-        return validator.escape(cat.trim().toLowerCase());
-      })
-      .filter((cat) => cat.length > 0 && cat.length <= 30);
+      .filter((cat) => typeof cat === "string")
+      .map((cat) => cat.trim())
+      .filter((cat) => cat.length > 0);
 
     return { isValid: true, sanitized };
   }
@@ -200,121 +179,15 @@ class InputValidator {
   // Profile picture URL validation
   static validateProfilePictureUrl(url) {
     if (!url || typeof url !== "string") {
-      return { isValid: true, sanitized: "" }; // Empty URL is allowed (will use default)
+      return { isValid: true, sanitized: "" }; // Profile picture is optional
     }
 
-    const trimmed = url.trim();
+    const sanitized = url.trim();
 
-    if (trimmed === "") {
-      return { isValid: true, sanitized: "" };
+    if (!validator.isURL(sanitized)) {
+      return { isValid: false, message: "Invalid profile picture URL" };
     }
-
-    // Check if it's a valid URL
-    if (
-      !validator.isURL(trimmed, {
-        protocols: ["http", "https"],
-        require_protocol: true,
-        require_host: true,
-        require_valid_protocol: true,
-        allow_underscores: false,
-        host_whitelist: false,
-        host_blacklist: false,
-        allow_trailing_dot: false,
-        allow_protocol_relative_urls: false,
-      })
-    ) {
-      return { isValid: false, message: "Invalid URL format" };
-    }
-
-    // Check URL length
-    if (trimmed.length > 500) {
-      return { isValid: false, message: "URL too long (max 500 characters)" };
-    }
-
-    // Check for suspicious patterns
-    const suspiciousPatterns = [
-      /javascript:/i,
-      /data:/i,
-      /vbscript:/i,
-      /file:/i,
-      /ftp:/i,
-      /<script/i,
-      /onclick/i,
-      /onerror/i,
-      /onload/i,
-    ];
-
-    if (suspiciousPatterns.some((pattern) => pattern.test(trimmed))) {
-      return { isValid: false, message: "URL contains unsafe content" };
-    }
-
-    // Whitelist common image hosting domains for extra security
-    const allowedDomains = [
-      "imgur.com",
-      "i.imgur.com",
-      "github.com",
-      "raw.githubusercontent.com",
-      "gravatar.com",
-      "www.gravatar.com",
-      "secure.gravatar.com",
-      "cloudinary.com",
-      "res.cloudinary.com",
-      "unsplash.com",
-      "images.unsplash.com",
-      "pexels.com",
-      "images.pexels.com",
-      "pixabay.com",
-      "cdn.pixabay.com",
-      "imagekit.io",
-      "firebasestorage.googleapis.com",
-      "s3.amazonaws.com",
-      "storage.googleapis.com",
-    ];
-
-    try {
-      const urlObj = new URL(trimmed);
-      const hostname = urlObj.hostname.toLowerCase();
-
-      // Check if domain is in whitelist or is a subdomain of allowed domain
-      const isAllowed = allowedDomains.some(
-        (domain) => hostname === domain || hostname.endsWith("." + domain)
-      );
-
-      if (!isAllowed) {
-        return {
-          isValid: false,
-          message: "URL must be from a trusted image hosting service",
-        };
-      }
-
-      // Check file extension for image files
-      const pathname = urlObj.pathname.toLowerCase();
-      const imageExtensions = [
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".gif",
-        ".webp",
-        ".svg",
-        ".bmp",
-      ];
-      const hasImageExtension = imageExtensions.some((ext) =>
-        pathname.endsWith(ext)
-      );
-
-      // Some services don't have extensions in URL, so we'll allow those from trusted domains
-      // but warn if there's no image extension
-      if (!hasImageExtension && !pathname.includes("/")) {
-        return {
-          isValid: false,
-          message: "URL should point to an image file",
-        };
-      }
-    } catch (error) {
-      return { isValid: false, message: "Invalid URL format" };
-    }
-
-    return { isValid: true, sanitized: trimmed };
+    return { isValid: true, sanitized };
   }
 }
 

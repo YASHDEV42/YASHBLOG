@@ -1,14 +1,39 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
+import { AxiosError } from "axios";
+import { useAuth } from "./useAuth";
+
+type RefreshAccessTokenResponse = { accessToken: string };
+type ErrorResponse = { message: string };
 
 export function useRefreshUser() {
-  return useQuery({
-    queryKey: ["currentUser"],
-    queryFn: async () => {
-      const res = await axiosInstance.get("/user/profile");
-      return res.data.user;
+  const { setAccessToken } = useAuth();
+
+  return useMutation<
+    RefreshAccessTokenResponse,
+    AxiosError<ErrorResponse>,
+    void
+  >({
+    mutationFn: async () => {
+      // Silent refresh; server rotates refresh cookie
+      const res = await axiosInstance.post(
+        "/user/refresh",
+        {},
+        { withCredentials: true }
+      );
+      if (!res.data?.accessToken) {
+        throw new Error("No access token in response");
+      }
+      return res.data;
     },
-    staleTime: 1000 * 60 * 5,
-    retry: 1,
+    onSuccess: (data) => {
+      setAccessToken(data.accessToken);
+    },
+    onError: (error) => {
+      console.error(
+        "Failed to refresh access token:",
+        error.response?.data?.message || error.message
+      );
+    },
   });
 }

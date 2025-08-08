@@ -10,7 +10,7 @@ type RegisterRequest = {
 };
 type RegisterResponse = {
   user: User;
-  message: string;
+  accessToken: string;
 };
 
 type ErrorResponse = {
@@ -29,6 +29,9 @@ export function useRegister() {
         email,
         password,
       });
+      if (!res.data?.user || !res.data?.accessToken) {
+        throw new Error("Invalid response data");
+      }
       return res.data;
     },
   });

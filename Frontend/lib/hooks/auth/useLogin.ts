@@ -10,7 +10,7 @@ type LoginPayload = {
 
 type LoginResponse = {
   user: User;
-  message: string;
+  accessToken: string;
 };
 
 type ErrorResponse = {
@@ -24,11 +24,9 @@ export function useLogin() {
       if (res.status !== 200) {
         throw new Error(res.data?.message || "Login failed");
       }
-      if (!res.data || !res.data.user) {
+      if (!res.data || !res.data.user || !res.data.accessToken) {
         throw new Error("Invalid response data");
       }
-      console.log("User logged in:", res.data.user);
-
       return res.data;
     },
   });

@@ -3,7 +3,6 @@ const http = require("http");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const { errorHandler, notFound } = require("./middleware/errorHandler.js");
-const { apiLimiter, securityHeaders } = require("./middleware/security.js");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 
@@ -12,12 +11,6 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-
-// Trust proxy for rate limiting behind reverse proxy
-app.set("trust proxy", 1);
-
-// Security headers (apply early)
-app.use(securityHeaders);
 
 // CORS configuration
 app.use(
@@ -30,21 +23,9 @@ app.use(
 );
 
 // Body parsing middleware
-app.use(express.json({ limit: "10mb" })); // Limit request size
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
-
-// General rate limiting for all API routes
-app.use("/api", apiLimiter);
-
-// Health check endpoint (before rate limiting)
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
-});
 
 // API Routes
 app.use("/api/user", require("./routes/userRoutes"));
