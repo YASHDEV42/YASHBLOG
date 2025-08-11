@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/redux/slices/userSlice";
 import { useLogin } from "@/lib/hooks/auth/useLogin";
+import { setAccessToken } from "@/lib/axios";
 import { useToast } from "@/lib/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
@@ -55,13 +56,16 @@ export function LoginForm({
       });
       console.log("Login result:", result);
 
+      if (result?.accessToken) {
+        setAccessToken(result.accessToken);
+      }
       if (result?.user) {
         console.log("Dispatching user to Redux:", result.user);
         dispatch(setUser(result.user));
 
         toast({
           title: "Success! 🎉",
-          description: result.message || "Login successful",
+          description: "Login successful",
         });
 
         // Navigate after a short delay to ensure state is updated
@@ -69,7 +73,7 @@ export function LoginForm({
           router.push("/");
         }, 100);
       } else {
-        const errorMessage = result?.message || "Invalid email or password";
+        const errorMessage = "Invalid email or password";
         setError(errorMessage);
         toast({
           title: "Login Failed",

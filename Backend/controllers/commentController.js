@@ -4,8 +4,8 @@ const User = require("../models/User");
 
 const createComment = async (req, res, next) => {
   try {
-    const { postId, content, userId } = req.body;
-
+    const { postId, content } = req.body;
+    const userId = req.userId;
     const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -23,17 +23,15 @@ const createComment = async (req, res, next) => {
     const comment = new Comment({
       content,
       post: postId,
-      user: userId, // Changed from author to user to match your model
+      user: userId,
     });
 
     await comment.save();
 
-    // Push the new comment reference to the post and user
     post.comments.push(comment._id);
     await post.save();
     await User.findByIdAndUpdate(userId, { $push: { comments: comment._id } });
 
-    // Populate the user field before returning the comment
     await comment.populate("user", "name email profilePicture");
 
     res.status(201).json(comment);
@@ -47,7 +45,7 @@ const getCommentsByPost = async (req, res, next) => {
     const { postId } = req.params;
 
     const comments = await Comment.find({ post: postId })
-      .populate("author", "name email profilePicture")
+      .populate("user", "name email profilePicture")
       .sort({ createdAt: -1 });
     if (!comments) {
       return res
@@ -61,7 +59,7 @@ const getCommentsByPost = async (req, res, next) => {
 };
 const deleteComment = async (req, res, next) => {
   try {
-    const { commentId } = req.params;
+    const { id: commentId } = req.params;
     const userId = req.userId;
 
     if (!userId) {
@@ -73,7 +71,7 @@ const deleteComment = async (req, res, next) => {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    if (comment.author.toString() !== userId) {
+    if (comment.user.toString() !== userId) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
@@ -90,7 +88,7 @@ const deleteComment = async (req, res, next) => {
 };
 const updateComment = async (req, res, next) => {
   try {
-    const { commentId } = req.params;
+    const { id: commentId } = req.params;
     const { content } = req.body;
     const userId = req.userId;
 
@@ -103,7 +101,7 @@ const updateComment = async (req, res, next) => {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    if (comment.author.toString() !== userId) {
+    if (comment.user.toString() !== userId) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
@@ -118,10 +116,10 @@ const updateComment = async (req, res, next) => {
 
 const getCommentById = async (req, res, next) => {
   try {
-    const { commentId } = req.params;
+    const { id: commentId } = req.params;
 
     const comment = await Comment.findById(commentId)
-      .populate("author", "name email profilePicture")
+      .populate("user", "name email profilePicture")
       .populate("post", "title slug");
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
@@ -140,7 +138,7 @@ const getCommentsByUser = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const comments = await Comment.find({ author: userId })
+    const comments = await Comment.find({ user: userId })
       .populate("post", "title slug")
       .sort({ createdAt: -1 });
 
@@ -173,8 +171,8 @@ const replayComment = async (req, res, next) => {
     const reply = new Comment({
       content,
       post: parentComment.post,
-      author: userId,
-      parent: commentId,
+      user: userId,
+      parentComment: commentId,
     });
     await reply.save();
     parentComment.replies.push(reply._id);

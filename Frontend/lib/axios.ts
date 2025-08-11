@@ -5,7 +5,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 
-const axiosInstance: AxiosInstance = axios.create({
+export const axiosInstance: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
   withCredentials: true,
 });
@@ -13,6 +13,7 @@ const axiosInstance: AxiosInstance = axios.create({
 // ---------------- In‑memory access token handling ----------------
 let accessToken: string | null = null;
 
+// this is a function to set the access token
 export function setAccessToken(token: string | null) {
   accessToken = token;
   if (token) {
@@ -22,6 +23,7 @@ export function setAccessToken(token: string | null) {
   }
 }
 
+//this is a function to get the access token
 export function getAccessToken() {
   return accessToken;
 }
@@ -116,8 +118,8 @@ axiosInstance.interceptors.response.use(
         subscribeTokenRefresh(resolve, reject);
         try {
           await performRefresh();
-        } catch (e) {
-          // performRefresh will trigger notifyRefreshError
+        } catch (e: unknown) {
+          console.error("Token refresh failed:", e);
         }
       });
 

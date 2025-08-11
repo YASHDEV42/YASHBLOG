@@ -11,17 +11,17 @@ const {
 } = require("../controllers/commentController.js");
 const auth = require("../middleware/auth.js");
 
-// Comment creation with rate limiting
+// Create and reply
 router.post("/", auth, createComment);
 router.post("/reply/:commentId", auth, replayComment);
 
-// Reading operations
-router.get("/:postId", auth, getCommentsByPost);
+// Read
+router.get("/post/:postId", auth, getCommentsByPost);
 router.get("/:id", auth, getCommentById);
-router.get("/user/:userId", auth, getCommentsByUser);
+router.get("/user/me", auth, getCommentsByUser);
 
-// Modification operations
-router.delete("/:id", auth, deleteComment);
+// Update/Delete
 router.put("/:id", auth, updateComment);
+router.delete("/:id", auth, deleteComment);
 
 module.exports = router;

@@ -29,6 +29,7 @@ import type { User, UpdateProfileData, ChangePasswordData } from "@/types";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/redux/slices/userSlice";
+import { axiosInstance } from "@/lib/axios";
 import {
   Loader2,
   UserIcon,
@@ -80,9 +81,9 @@ export default function Settings({ user }: { user: User | null }) {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const validatePassword = (password: string) => {
-    return password.length >= 8;
-  };
+  // const validatePassword = (password: string) => {
+  //   return password.length >= 8;
+  // };
 
   const validateProfilePicture = (url: string) => {
     if (!url || url.trim() === "") return { isValid: true, message: "" }; // Optional field
@@ -228,24 +229,8 @@ export default function Settings({ user }: { user: User | null }) {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/user/profile/${user?._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(profileData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update profile");
-      }
-
-      const updatedUser = await response.json();
+      const response = await axiosInstance.put("/user/profile", profileData);
+      const updatedUser = response.data?.user || response.data;
       dispatch(setUser(updatedUser));
       setProfileMessage({
         type: "success",
@@ -273,87 +258,88 @@ export default function Settings({ user }: { user: User | null }) {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsPasswordLoading(true);
-    setPasswordMessage(null);
+    // setIsPasswordLoading(true);
+    // setPasswordMessage(null);
 
-    // Validation
-    if (!passwordData.currentPassword) {
-      setPasswordMessage({
-        type: "error",
-        text: "Current password is required",
-      });
-      setIsPasswordLoading(false);
-      return;
-    }
+    // // Validation
+    // if (!passwordData.currentPassword) {
+    //   setPasswordMessage({
+    //     type: "error",
+    //     text: "Current password is required",
+    //   });
+    //   setIsPasswordLoading(false);
+    //   return;
+    // }
 
-    if (!validatePassword(passwordData.newPassword)) {
-      setPasswordMessage({
-        type: "error",
-        text: "New password must be at least 8 characters long",
-      });
-      setIsPasswordLoading(false);
-      return;
-    }
+    // if (!validatePassword(passwordData.newPassword)) {
+    //   setPasswordMessage({
+    //     type: "error",
+    //     text: "New password must be at least 8 characters long",
+    //   });
+    //   setIsPasswordLoading(false);
+    //   return;
+    // }
 
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordMessage({ type: "error", text: "New passwords do not match" });
-      setIsPasswordLoading(false);
-      return;
-    }
+    // if (passwordData.newPassword !== passwordData.confirmPassword) {
+    //   setPasswordMessage({ type: "error", text: "New passwords do not match" });
+    //   setIsPasswordLoading(false);
+    //   return;
+    // }
 
-    if (passwordData.currentPassword === passwordData.newPassword) {
-      setPasswordMessage({
-        type: "error",
-        text: "New password must be different from current password",
-      });
-      setIsPasswordLoading(false);
-      return;
-    }
+    // if (passwordData.currentPassword === passwordData.newPassword) {
+    //   setPasswordMessage({
+    //     type: "error",
+    //     text: "New password must be different from current password",
+    //   });
+    //   setIsPasswordLoading(false);
+    //   return;
+    // }
 
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/user/change-password/${user?._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            currentPassword: passwordData.currentPassword,
-            newPassword: passwordData.newPassword,
-          }),
-        }
-      );
+    // try {
+    //   const response = await fetch(
+    //     `http://localhost:5000/api/user/change-password/${user?._id}`,
+    //     {
+    //       method: "PUT",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       credentials: "include",
+    //       body: JSON.stringify({
+    //         currentPassword: passwordData.currentPassword,
+    //         newPassword: passwordData.newPassword,
+    //       }),
+    //     }
+    //   );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to change password");
-      }
+    //   if (!response.ok) {
+    //     const errorData = await response.json();
+    //     throw new Error(errorData.message || "Failed to change password");
+    //   }
 
-      setPasswordMessage({
-        type: "success",
-        text: "Password changed successfully!",
-      });
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+    //   setPasswordMessage({
+    //     type: "success",
+    //     text: "Password changed successfully!",
+    //   });
+    //   setPasswordData({
+    //     currentPassword: "",
+    //     newPassword: "",
+    //     confirmPassword: "",
+    //   });
 
-      // Close dialog after successful password change
-      setTimeout(() => {
-        setIsDialogOpen(false);
-        setPasswordMessage(null);
-      }, 2000);
-    } catch (error) {
-      console.error("Error changing password:", error);
-      setPasswordMessage({
-        type: "error",
-        text: "Something went wrong.",
-      });
-    } finally {
-      setIsPasswordLoading(false);
-    }
+    //   // Close dialog after successful password change
+    //   setTimeout(() => {
+    //     setIsDialogOpen(false);
+    //     setPasswordMessage(null);
+    //   }, 2000);
+    // } catch (error) {
+    //   console.error("Error changing password:", error);
+    //   setPasswordMessage({
+    //     type: "error",
+    //     text: "Something went wrong.",
+    //   });
+    // } finally {
+    //   setIsPasswordLoading(false);
+    // }
   };
 
   const getInitials = (name: string) => {

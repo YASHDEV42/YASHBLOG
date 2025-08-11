@@ -138,41 +138,31 @@ const refreshTokenHandler = (req, res) => {
 };
 
 /* -------------------------- GET CURRENT USER --------------------------- */
-const getCurrentUser = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith("Bearer ")) return res.sendStatus(401);
+const getCurrentUser = async (req, res) => {
+  const userId = req.userId;
 
-    const token = authHeader.split(" ")[1];
-    jwt.verify(token, process.env.ACCESS_SECRET, async (err, decoded) => {
-      if (err) return res.sendStatus(403);
+  if (!userId) return res.sendStatus(401);
 
-      const user = await User.findById(decoded.userId).select("-password");
-      if (!user) return res.status(404).json({ message: "User not found" });
+  const user = await User.findById(userId).select("-password");
+  if (!user) return res.sendStatus(404);
 
-      return res.status(200).json({ user: safeUser(user) });
-    });
-  } catch (error) {
-    next(error);
-  }
+  return res.status(200).json({ user: safeUser(user) });
 };
 
 /* --------------------------- GET USER PROFILE -------------------------- */
 const getUserProfile = async (req, res, next) => {
   try {
-    // support either /user/profile (current user) or /user/:id/profile
-    const targetId = req.params.id || req.user?.id || req.user?._id;
-    if (!targetId) return res.status(400).json({ message: "User id missing" });
-
-    const user = await User.findById(targetId)
+    const userId = req.userId;
+    const userCollection = await User.findById(userId)
       .select("-password")
       .populate("posts", "title createdAt slug")
       .populate("followers", "name")
       .populate("following", "name");
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!userCollection)
+      return res.status(404).json({ message: "User not found" });
 
-    res.status(200).json(user);
+    res.status(200).json({ user: safeUser(userCollection) });
   } catch (error) {
     next(error);
   }
@@ -181,8 +171,7 @@ const getUserProfile = async (req, res, next) => {
 /* -------------------------- UPDATE USER PROFILE ------------------------ */
 const updateUserProfile = async (req, res, next) => {
   const { name, bio, profilePicture } = req.body;
-  // fallback to auth user if no param id
-  const userId = req.params.id || req.user?.id || req.user?._id;
+  const userId = req.userId;
 
   try {
     if (!userId) return res.status(400).json({ message: "User id missing" });
@@ -206,13 +195,15 @@ const updateUserProfile = async (req, res, next) => {
       updateData.profilePicture = val.sanitized;
     }
 
-    const user = await User.findByIdAndUpdate(userId, updateData, { new: true })
+    const updateUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    })
       .select("-password")
       .populate("posts", "title createdAt slug");
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!updateUser) return res.status(404).json({ message: "User not found" });
 
-    return res.status(200).json(safeUser(user));
+    return res.status(200).json({ user: safeUser(updateUser) });
   } catch (error) {
     next(error);
   }

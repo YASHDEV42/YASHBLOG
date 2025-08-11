@@ -11,10 +11,6 @@ const auth = async (req, res, next) => {
     ) {
       token = req.headers.authorization.split(" ")[1];
     }
-    // Check for token in cookies
-    else if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
-    }
 
     if (!token) {
       return res
@@ -23,7 +19,7 @@ const auth = async (req, res, next) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.ACCESS_SECRET);
       req.userId = decoded.userId;
       next();
     } catch (jwtError) {

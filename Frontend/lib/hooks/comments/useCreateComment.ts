@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PopulatedComment } from "@/types";
-import axiosInstance from "@/lib/axios";
+import { axiosInstance } from "@/lib/axios";
 
 export const useCreateComment = () => {
   const queryClient = useQueryClient();

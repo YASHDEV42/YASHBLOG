@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUser, clearUser } from "@/redux/slices/userSlice";
-import axiosInstance from "@/lib/axios";
+import { axiosInstance } from "@/lib/axios";
 import Spinner from "./Spinner";
 
 interface ProtectedRouteProps {

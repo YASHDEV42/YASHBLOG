@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import axiosInstance from "@/lib/axios";
 import { User } from "@/types";
 import { AxiosError } from "axios";
+import { axiosInstance } from "@/lib/axios";
 
 type RegisterRequest = {
   name: string;

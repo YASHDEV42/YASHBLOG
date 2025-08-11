@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "@/lib/axios";
+import { axiosInstance } from "@/lib/axios";
 import { AxiosError } from "axios";
 import { UserProfile } from "./useUserProfile";
 
@@ -15,7 +15,7 @@ export function useUpdateUserProfile() {
   return useMutation<UserProfile, AxiosError, UpdateUserProfilePayload>({
     mutationFn: async (payload) => {
       const res = await axiosInstance.put("/user/profile", payload);
-      return res.data; // updated user
+      return res.data;
     },
     onSuccess: (data) => {
       qc.setQueryData(["userProfile"], data);

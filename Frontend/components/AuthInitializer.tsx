@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, clearUser } from "@/redux/slices/userSlice";
 import type { RootState } from "@/redux/store";
-import axiosInstance from "@/lib/axios";
+import { axiosInstance } from "@/lib/axios";
 
 export function AuthInitializer({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();

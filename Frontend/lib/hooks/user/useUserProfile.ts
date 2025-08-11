@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import axiosInstance from "@/lib/axios";
+import { axiosInstance } from "@/lib/axios";
 import { AxiosError } from "axios";
 
 export interface UserProfile {
@@ -25,7 +25,7 @@ export function useUserProfile(enabled: boolean = true) {
     queryKey: ["userProfile"],
     queryFn: async () => {
       const res = await axiosInstance.get("/user/profile");
-      return res.data; // backend returns user object directly
+      return res.data;
     },
     enabled,
     staleTime: 60_000,

@@ -7,7 +7,7 @@ import {
   setLoading,
   setError,
 } from "@/redux/slices/userSlice";
-import axiosInstance from "@/lib/axios";
+import { axiosInstance, setAccessToken } from "@/lib/axios"; // ✅ use from axios.js
 import { useLogin } from "./useLogin";
 import { useRegister } from "./useRegister";
 import { useLogout } from "./useLogout";
@@ -22,34 +22,17 @@ export function useAuth() {
   const registerMutation = useRegister();
   const logoutMutation = useLogout();
 
-  const setAccessToken = (token: string) => {
-    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  };
-
   useEffect(() => {
     const init = async () => {
       dispatch(setLoading(true));
       try {
-        // 1. silent refresh to obtain short-lived access token
-        const refreshRes = await axiosInstance.post(
-          "/user/refresh",
-          {},
-          { withCredentials: true }
-        );
-        const token = refreshRes.data?.accessToken;
-        if (token) {
-          setAccessToken(token);
-          // 2. fetch current user
-          const userRes = await axiosInstance.get("/user/current");
-          dispatch(setUser(userRes.data.user));
-        } else {
-          dispatch(setUser(null));
-        }
-      } catch (err: any) {
+        // Try fetching current user (axios will refresh token if needed)
+        const userRes = await axiosInstance.get("/user/current");
+        dispatch(setUser(userRes.data.user));
+      } catch (error: unknown) {
         dispatch(setUser(null));
-        dispatch(
-          setError(err?.response?.data?.message || err.message || "Not authenticated")
-        );
+        dispatch(setError("Not authenticated"));
+        console.error("Failed to fetch current user:", error);
       } finally {
         dispatch(setLoading(false));
       }
@@ -61,7 +44,7 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     const result = await loginMutation.mutateAsync({ email, password });
-    if (result?.accessToken) setAccessToken(result.accessToken);
+    if (result?.accessToken) setAccessToken(result.accessToken); // ✅ correct function
     if (result?.user) dispatch(setUser(result.user));
     return result;
   };
@@ -79,7 +62,7 @@ export function useAuth() {
 
   const logout = async () => {
     await logoutMutation.mutateAsync();
-    delete axiosInstance.defaults.headers.common["Authorization"];
+    setAccessToken(null); // ✅ removes from memory + headers
     dispatch(clearUser());
   };
 
@@ -92,9 +75,5 @@ export function useAuth() {
     login,
     register,
     logout,
-    setAccessToken,
-  };
-}
-    setAccessToken, // exposed for refresh hook usage
   };
 }
