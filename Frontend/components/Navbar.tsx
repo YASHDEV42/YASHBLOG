@@ -22,15 +22,11 @@ import { toast } from "sonner";
 
 export function Navbar() {
   const isDark = useSelector((state: RootState) => state.theme.isDark);
-  const { user, loading, initialized } = useSelector(
-    (state: RootState) => state.user
-  );
+  const { user, initialized } = useSelector((state: RootState) => state.user);
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   const { mutateAsync: logoutUser } = useLogout();
   const router = useRouter();
-
-  // Debug logging
 
   const handleSignOut = async () => {
     try {
