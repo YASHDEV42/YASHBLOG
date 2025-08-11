@@ -212,14 +212,14 @@ const App = ({ posts: initialPosts }: { posts: CompletePost[] }) => {
               <div className="flex gap-2 w-full">
                 <AlertDialog>
                   <AlertDialogTrigger
-                    className="hover:bg-red-500 transition-all duration-200 border-[1px] border-red-500 cursor-pointer"
+                    className="hover:bg-red-500 transition-all duration-200  cursor-pointer"
                     asChild
                   >
                     <Button
-                      variant="destructive"
+                      variant="outline"
                       size="sm"
                       disabled={actioningPost === post._id}
-                      className="flex-1 h-8"
+                      className="flex-1 h-8 bg-transparent cursor-pointer"
                     >
                       {actioningPost === post._id ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -228,20 +228,22 @@ const App = ({ posts: initialPosts }: { posts: CompletePost[] }) => {
                       )}
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="bg-background text-foreground border-border dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Post</AlertDialogTitle>
-                      <AlertDialogDescription>
+                      <AlertDialogTitle className="text-foreground dark:text-gray-100">
+                        Delete Post
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="text-muted-foreground dark:text-gray-400">
                         Are you sure you want to delete {post.title}? This
                         action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="cursor-pointer">
+                      <AlertDialogCancel className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:border-gray-600">
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction
-                        className="cursor-pointer"
+                        className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
                         onClick={() => handleDeletePost(post.slug)}
                       >
                         Delete
@@ -267,24 +269,24 @@ const App = ({ posts: initialPosts }: { posts: CompletePost[] }) => {
                       )}
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="bg-background text-foreground border-border dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>
+                      <AlertDialogTitle className="text-foreground dark:text-gray-100">
                         {post.published ? "Make Private" : "Publish Post"}
                       </AlertDialogTitle>
-                      <AlertDialogDescription>
+                      <AlertDialogDescription className="text-muted-foreground dark:text-gray-400">
                         {post.published
                           ? `Are you sure you want to make "${post.title}" private? It will no longer be visible to others.`
                           : `Are you sure you want to publish "${post.title}"? It will be visible to everyone.`}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="cursor-pointer">
+                      <AlertDialogCancel className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:border-gray-600">
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => handleTogglePublish(post.slug, post._id)}
-                        className="cursor-pointer"
+                        className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
                       >
                         {actioningPost === post._id ? (
                           <Loader2 className="h-3 w-3 animate-spin" />

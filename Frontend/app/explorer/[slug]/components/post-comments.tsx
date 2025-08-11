@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -8,19 +8,19 @@ import { useAuth } from "@/lib/hooks/auth/useAuth";
 import { useCreateComment } from "@/lib/hooks/comments/useCreateComment";
 import { PopulatedComment } from "@/types";
 import { UserAvatar } from "@/components/UserAvatar";
+import { useCommentByPost } from "@/lib/hooks/comments/useCommentByPost";
 
-interface CommentsProps {
-  postId: string;
-  initialComments?: PopulatedComment[];
-}
-
-export function Comments({ postId, initialComments = [] }: CommentsProps) {
+export function Comments({ postId }: { postId: string }) {
   const { user: currentUser } = useAuth();
-  const [comments, setComments] = useState<PopulatedComment[]>(initialComments);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [comments, setComments] = useState<PopulatedComment[]>([]);
   const { mutateAsync: createComment } = useCreateComment();
+
+  const { data: fetchedComments } = useCommentByPost(postId);
+  useEffect(() => {
+    if (fetchedComments) setComments(fetchedComments);
+  }, [fetchedComments]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -18,7 +18,7 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-         </head>
+      </head>
       <body className="antialiased ">
         <ProviderComponent>
           <Theme>

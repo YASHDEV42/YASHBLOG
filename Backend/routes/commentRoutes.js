@@ -16,8 +16,8 @@ router.post("/", auth, createComment);
 router.post("/reply/:commentId", auth, replayComment);
 
 // Read
-router.get("/post/:postId", auth, getCommentsByPost);
-router.get("/:id", auth, getCommentById);
+router.get("/post/:postId", getCommentsByPost);
+router.get("/:id", getCommentById);
 router.get("/user/me", auth, getCommentsByUser);
 
 // Update/Delete

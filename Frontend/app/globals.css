@@ -72,7 +72,52 @@
     overflow: auto !important;
   }
 }
+/* Radix UI AlertDialog dark mode styles */
+[data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.5);
+}
 
+.dark [data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+[data-radix-dialog-content] {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark [data-radix-dialog-content] {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--card-foreground));
+}
+
+/* Target AlertDialog specifically */
+[data-state="open"][data-radix-collection-item] {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark [data-state="open"][data-radix-collection-item] {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+/* Force AlertDialog content to use theme colors */
+.dark [role="alertdialog"] {
+  background-color: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--card-foreground)) !important;
+}
+
+.dark [role="alertdialog"] h2 {
+  color: hsl(var(--card-foreground)) !important;
+}
+
+.dark [role="alertdialog"] p {
+  color: hsl(var(--muted-foreground)) !important;
+}
 @layer utilities {
   .bg-background {
     background-color: hsl(var(--background));

@@ -22,7 +22,6 @@ export function PostContent({ slug }: { slug: string }) {
   const [localLikes, setLocalLikes] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [loadingLike, setLoadingLike] = useState<boolean>(false);
-  console.log("liked:", isLiked);
   useEffect(() => {
     if (post && user) {
       setLocalLikes(post.metadata?.likes || 0);
@@ -145,10 +144,6 @@ export function PostContent({ slug }: { slug: string }) {
     );
   }
 
-  // Debug logging
-  console.log("Post author data:", post.author);
-  console.log("Profile picture:", post.author?.profilePicture);
-
   return (
     <>
       <Card className="w-full max-w-[90vw] md:max-w-[80vw] mx-auto mt-10">
@@ -224,7 +219,7 @@ export function PostContent({ slug }: { slug: string }) {
           />
         </CardContent>
       </Card>
-      {user && user._id && <Comments postId={post._id} />}
+      <Comments postId={post._id} />
     </>
   );
 }

@@ -14,8 +14,9 @@ const auth = require("../middleware/auth.js");
 
 router.post("/", auth, createPost);
 
-router.get("/:slug", auth, getPost);
-router.get("/", auth, getAllPosts);
+// Public reads
+router.get("/:slug", getPost);
+router.get("/", getAllPosts);
 
 // Modification operations
 router.put("/:slug", auth, updatePost);

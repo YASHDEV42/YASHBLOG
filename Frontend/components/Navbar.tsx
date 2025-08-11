@@ -31,7 +31,6 @@ export function Navbar() {
   const router = useRouter();
 
   // Debug logging
-  console.log("Navbar state:", { user: !!user, loading, initialized });
 
   const handleSignOut = async () => {
     try {
