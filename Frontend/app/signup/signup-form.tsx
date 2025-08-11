@@ -55,15 +55,15 @@ export function SignupForm({
       if (result?.user) {
         toast({
           title: "Success",
-          description: result.message || "Account created successfully",
+          description: "Account created successfully",
         });
         setFormData({ name: "", email: "", password: "", confirmPassword: "" });
         router.push("/");
       } else {
-        setError(result.message || "Registration failed");
+        setError("Registration failed");
         toast({
           title: "Error",
-          description: result.message || "Registration failed",
+          description: "Registration failed",
           variant: "destructive",
         });
       }
